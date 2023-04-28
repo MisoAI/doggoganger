@@ -23,11 +23,11 @@ jobs:
       - run: git config --global user.name "${{ github.actor }}"
       - run: git config --global user.email "github-action-${{ github.actor }}@users.noreply.github.com"
       - run: npm run version ${{ steps.version.outputs.version }}
-      - run: npm publish --workspaces
+      - run: npm publish
         if: "!github.event.release.prerelease"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - run: npm publish --workspaces --tag beta
+      - run: npm publish --tag beta
         if: "github.event.release.prerelease"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
