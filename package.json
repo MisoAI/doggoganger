@@ -3,8 +3,7 @@
   "description": "A dummy miso endpoint for demo and testing",
   "type": "module",
   "bin": {
-    "doggomon": "cli/nodemon.js",
-    "doggoganger": "cli/server.js"
+    "doggoganger": "cli/index.js"
   },
   "publishConfig": {
     "access": "public"
@@ -31,9 +30,11 @@
     "js-yaml": "^4.1.0",
     "koa": "^2.14.1",
     "koa-body": "^6.0.1",
+    "koa-static": "^5.0.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "nodemon": "^2.0.15"
+    "nodemon": "^2.0.15",
+    "yargs": "^17.5.1"
   }
 }
