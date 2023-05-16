@@ -10,17 +10,17 @@ const STAGES = [
   {
     name: 'fetch',
     duration: 1.5,
-    text: `Checking the question and fetching results...`,
+    text: `Checking the question and fetching results... `,
   },
   {
     name: 'verify',
     duration: 1.5,
-    text: `Verifying results...`,
+    text: `Verifying results... `,
   },
   {
     name: 'generate',
     duration: 1.5,
-    text: `Generating answer...`,
+    text: `Generating answer... `,
   },
 ];
 
@@ -47,7 +47,7 @@ const answers = new Map();
 
 class Answer {
 
-  constructor(question, previous_question_id, { answerFormat = 'plaintext' } = {}) {
+  constructor(question, previous_question_id, { answerFormat = 'markdown' } = {}) {
     this.question_id = uuid();
     this.question = question;
     this.previous_answer_id = previous_question_id;
@@ -65,15 +65,15 @@ class Answer {
   get() {
     const now = Date.now();
     const elapsed = (now - this.timestamp) / 1000;
-    const [stage, answer, finished] = this._answer(elapsed);
+    const [answer_stage, answer, finished] = this._answer(elapsed);
     const sources = this._sources(elapsed);
     const related_resources = this._relatedResources(elapsed);
     const { question_id, question, datetime, previous_question_id } = this;
 
     return {
       affiliation: undefined,
-      stage,
       answer,
+      answer_stage,
       datetime,
       finished,
       previous_question_id,

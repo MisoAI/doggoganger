@@ -126,6 +126,7 @@ const INLINE_FEATURES = {
   'emphasis-1': () => multiply(_emphasisAdfix(1), 2),
   'emphasis-2': () => multiply(_emphasisAdfix(2), 2),
   'emphasis-3': () => multiply(_emphasisAdfix(3), 2),
+  'strikethrough': () => ['~', '~'],
   'link': ({ url = 'https://miso.ai' } = {}) => [`[`, `](${url})`],
 };
 
