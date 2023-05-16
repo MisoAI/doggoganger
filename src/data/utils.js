@@ -1,9 +1,10 @@
 export function randomInt(min, max) {
-  return max > min ? min + Math.floor(Math.random() * (max - min)) : min;
+  return max == null || (max <= min) ? min : (min + Math.floor(Math.random() * (max - min)));
 }
 
-export function repeat(fn, min = 1, max = 2) {
-  const n = randomInt(min, max);
+// TODO: pass in size
+export function repeat(fn, range) {
+  const n = randomInt(...range);
   const result = [];
   for (let i = 0; i < n; i++) {
     result.push(fn());
@@ -15,14 +16,16 @@ export function id() {
   return Math.random().toString(36).substring(2, 10);
 }
 
-export function availability() {
-  return Math.random() > 0.3 ? 'IN_STOCK' : 'OUT_OF_STOCK';
+export function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
 }
 
-export function price() {
-  return Math.floor(Math.random() * 10000) / 100;
-}
-
-export function rating() {
-  return Math.floor(Math.random() * 500) / 100 + 1;
+export function imageUrl(size) {
+  const seed = Math.floor(Math.random() * 1000);
+  const sizePath = Array.isArray(size) ? size.length > 1 ? `${size[0]}/${size[1]}` : `${size[0]}` : `${size}`;
+  return `https://picsum.photos/seed/${seed}/${sizePath}`;
 }

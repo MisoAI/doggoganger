@@ -21,6 +21,10 @@ let { watch, ...argv } = yargs(hideBin(process.argv))
     describe: 'Watch files for changes',
     type: 'boolean',
   })
+  .option('answer-format', {
+    describe: 'Answer field format in answers API response',
+    type: 'string',
+  })
   .option('serve', {
     alias: 's',
     describe: 'Serve static files as well',
@@ -28,8 +32,8 @@ let { watch, ...argv } = yargs(hideBin(process.argv))
   })
   .argv;
 
-const { port, serve } = argv;
-argv = { port, serve };
+const { port, serve, ['answer-format']: answerFormat } = argv;
+argv = { port, serve, answerFormat };
 
 if (watch) {
   const exec = `node ${resolve(__dirname, 'server.js')} ${JSON.stringify(JSON.stringify(argv))}`;

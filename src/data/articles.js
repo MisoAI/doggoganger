@@ -1,5 +1,5 @@
 import * as u from './utils.js';
-import * as lorem from './lorem.js';
+import * as fields from './fields.js';
 
 export function *articles({ rows, ...options } = {}) {
   for (let i = 0; i < rows; i++) {
@@ -9,39 +9,16 @@ export function *articles({ rows, ...options } = {}) {
 
 function article({} = {}) {
   const id = u.id();
-  const prices = u.repeat(u.price, 1, 2);
-  prices.sort();
-  const seed = Math.floor(Math.random() * 1000);
 
   return {
     product_id: id,
-    authors: lorem.lorem({
-      min: 1,
-      max: 3,
-      fixedStarts: 0,
-      decorates: ['title'],
-      output: 'array',
-    }),
+    authors: fields.authors(),
     categories: [],
-    tags: lorem.lorem({
-      min: 1,
-      max: 4,
-      fixedStarts: 0,
-      output: 'array',
-    }),
-    title: lorem.lorem({
-      min: 4,
-      max: 10,
-      fixedStarts: 0,
-      decorates: ['title'],
-    }),
-    description: lorem.lorem({
-      min: 20,
-      max: 40,
-      decorates: ['description'],
-    }),
+    tags: fields.tags(),
+    title: fields.title({ size: [4, 10] }),
+    description: fields.description({ size: [20, 40] }),
     //html,
-    cover_image: `https://picsum.photos/seed/${seed}/300`,
+    cover_image: fields.image(),
     url: `/products/${id}`,
   };
 }

@@ -1,5 +1,5 @@
 import * as u from './utils.js';
-import * as lorem from './lorem.js';
+import * as fields from './fields.js';
 
 export function *products({ rows, ...options } = {}) {
   for (let i = 0; i < rows; i++) {
@@ -9,43 +9,22 @@ export function *products({ rows, ...options } = {}) {
 
 function product({} = {}) {
   const id = u.id();
-  const prices = u.repeat(u.price, 1, 2);
+  const prices = u.repeat(fields.price, [1, 2]);
   prices.sort();
-  const seed = Math.floor(Math.random() * 1000);
 
   return {
     product_id: id,
-    authors: lorem.lorem({
-      min: 1,
-      max: 3,
-      fixedStarts: 0,
-      decorates: ['title'],
-      output: 'array',
-    }),
+    authors: fields.authors(),
     categories: [],
-    tags: lorem.lorem({
-      min: 1,
-      max: 4,
-      fixedStarts: 0,
-      output: 'array',
-    }),
-    title: lorem.lorem({
-      min: 2,
-      max: 6,
-      fixedStarts: 0,
-      decorates: ['title'],
-    }),
-    description: lorem.lorem({
-      min: 10,
-      max: 20,
-      decorates: ['description'],
-    }),
+    tags: fields.tags(),
+    title: fields.title(),
+    description: fields.description(),
     //html,
-    cover_image: `https://picsum.photos/seed/${seed}/300`,
+    cover_image: fields.image(),
     url: `/products/${id}`,
     sale_price: prices[0],
     original_price: prices[prices.length - 1],
-    rating: u.rating(),
-    availability: u.availability(),
+    rating: fields.rating(),
+    availability: fields.availability(),
   };
 }

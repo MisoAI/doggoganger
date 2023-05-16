@@ -7,8 +7,8 @@ import { randomInt } from './utils.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_WORDS = yaml.load(readFileSync(resolve(__dirname, './words.yaml'), 'utf8'));
 
-export function lorem({ decorates = [], min, max, n, output = 'string', ...options } = {}) {
-  let iterator = limit({ min, max, n })(base(options));
+export function lorem({ decorates = [], output = 'string', size, min, max, ...options } = {}) {
+  let iterator = limit(size || [min, max])(base(options));
   for (const decorate of decorates) {
     iterator = lookup(decorate)(iterator);
   }
@@ -20,14 +20,15 @@ const FNS = {
   array,
   title,
   description,
+  multiline,
 }
 
 function lookup(fn) {
-  return typeof fn === 'string' ? FNS[fn]() : fn();
+  return typeof fn === 'string' ? FNS[fn]() : fn;
 }
 
 // base //
-export function *base({ words = DEFAULT_WORDS, fixedStarts = 2 } = {}) {
+export function *base({ words = DEFAULT_WORDS, fixedStarts = 0 } = {}) {
   const wordsLength = words.length;
   for (let i = 0; ; i++) {
     yield words[i < fixedStarts ? i : Math.floor(Math.random() * wordsLength)];
@@ -43,9 +44,34 @@ export function array() {
   return iterator => [...iterator];
 }
 
+export function multiline({
+  wordsPerLine = {
+    avg: 10,
+    std: 3,
+    min: 1,
+  },
+} = {}) {
+  return iterator => {
+    let slen = gaussMS(wordsPerLine);
+    let result = '';
+    for (let word of iterator) {
+      if (result) {
+        if (slen-- === 0) {
+          result += '\n';
+          slen = gaussMS(wordsPerLine);
+        } else {
+          result += ' ';
+        }
+      }
+      result += word;
+    }
+    return result;
+  }
+}
+
 // decorators //
-export function limit({ n, min = 5, max = 10 }) {
-  n = n || randomInt(min, max);
+export function limit(size = [5, 10]) {
+  const n = typeof size === 'number' ? size : randomInt(...size);
   return function *(iterator) {
     let i = 0;
     for (let word of iterator) {
@@ -66,8 +92,11 @@ export function title({} = {}) {
 }
 
 export function description({
-  wordsPerSentenceAvg = 24,
-  wordsPerSentenceStd = 5,
+  wordsPerSentence = {
+    avg: 24,
+    std: 5,
+    min: 1,
+  },
 } = {}) {
   return function *(iterator) {
     let word;
@@ -79,7 +108,7 @@ export function description({
       word = _word;
       if (slen === 0) {
         word = capitalize(word);
-        slen = Math.max(1, gaussMS(wordsPerSentenceAvg, wordsPerSentenceStd));
+        slen = gaussMS(wordsPerSentence);
       }
       if (--slen === 0) {
         word += '.';
@@ -99,8 +128,23 @@ function capitalize(word) {
   return word[0].toUpperCase() + word.substring(1);
 }
 
-function gaussMS(mean, std) {
-  return Math.round(gaussRandom() * std + mean);
+// TODO: have a random variable expression
+function gaussMS(args) {
+  if (typeof args === 'number') {
+    return Math.round(avg);
+  }
+  let { avg, std, min, max } = args;
+  if (std === undefined) {
+    std = avg / 4;
+  }
+  let n = gaussRandom() * std + avg;
+  if (min !== undefined) {
+    n = Math.max(min, n);
+  }
+  if (max !== undefined) {
+    n = Math.min(max, n);
+  }
+  return Math.round(n);
 }
 
 function gaussRandom() {
