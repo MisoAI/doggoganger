@@ -62,6 +62,10 @@ class Answer {
     answers.set(this.question_id, this);
   }
 
+  get id() {
+    return this.question_id;
+  }
+
   get() {
     const now = Date.now();
     const elapsed = (now - this.timestamp) / 1000;
@@ -118,10 +122,12 @@ export default function({ answerFormat }) {
   const router = new Router();
 
   router.post('/questions', (ctx) => {
-    const { q: question, previous_answer_id } = JSON.parse(ctx.request.body);
+    const { question, previous_answer_id } = JSON.parse(ctx.request.body);
     const answerFormat = ctx.get('x-answer-format') || options.answerFormat;
     const answer = new Answer(question, previous_answer_id, { answerFormat });
-    const data = answer.get();
+    const data = {
+      question_id: answer.id,
+    };
     ctx.body = JSON.stringify({ data });
   });
 
