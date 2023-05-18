@@ -1,6 +1,7 @@
 import Router from '@koa/router';
 import { v4 as uuid } from 'uuid';
 import { lorem, md, articles, utils } from '../data/index.js';
+import { parseBodyIfNecessary } from './utils.js';
 
 const { randomInt } = utils;
 
@@ -122,7 +123,7 @@ export default function({ answerFormat }) {
   const router = new Router();
 
   router.post('/questions', (ctx) => {
-    const { question, previous_answer_id } = JSON.parse(ctx.request.body);
+    const { question, previous_answer_id } = parseBodyIfNecessary(ctx.request.body);
     const answerFormat = ctx.get('x-answer-format') || options.answerFormat;
     const answer = new Answer(question, previous_answer_id, { answerFormat });
     const data = {
