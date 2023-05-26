@@ -3,22 +3,32 @@ import * as lorem from '../lorem.js';
 
 // TODO: wild mode that generates edge cases
 
-export function markdown({ features, blocks = [8, 12] } = {}) {
+export function markdown({ features, blocks = [8, 12], sampling = 1 } = {}) {
   // TODO: block features
-  return [
-    atxHeading({ features }),
-    paragraph({ features }),
-    fencedCodeBlock({ features }),
-    paragraph({ features }),
-    table({ features }),
-    image(),
-    paragraph({ features }),
-    hr(),
-    atxHeading({ features }),
-    paragraph({ features }),
-    list({ features }),
-    paragraph({ features }),
-  ].join('\n\n');
+  return sample([
+    () => atxHeading({ features }),
+    () => paragraph({ features }),
+    () => fencedCodeBlock({ features }),
+    () => paragraph({ features }),
+    () => table({ features }),
+    () => image(),
+    () => paragraph({ features }),
+    () => hr(),
+    () => atxHeading({ features }),
+    () => paragraph({ features }),
+    () => list({ features }),
+    () => paragraph({ features }),
+  ], sampling).join('\n\n');
+}
+
+function sample(fns, sampling) {
+  const arr = [];
+  for (const fn of fns) {
+    if (sampling >= 1 || Math.random() < sampling) {
+      arr.push(fn());
+    }
+  }
+  return arr;
 }
 
 // leaf blocks //

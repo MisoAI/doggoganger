@@ -30,15 +30,19 @@ function formatDatetime(timestamp) {
   return str.endsWith('Z') ? str.slice(0, -1) : str;
 }
 
-function answer(format) {
+function sample(size, sampling) {
+  return sampling !== undefined ? Math.ceil(size * sampling) : size;
+}
+
+function answer({ format, sampling }) {
   switch (format) {
     case 'markdown':
-      return md.markdown({});
+      return md.markdown({ sampling });
     case 'plaintext':
     default:
       return lorem.lorem({
-        min: 50,
-        max: 100,
+        min: sample(50, sampling),
+        max: sample(50, sampling),
         decorates: ['description'],
       });
   }
@@ -48,16 +52,19 @@ const answers = new Map();
 
 class Answer {
 
-  constructor(question, previous_question_id, { answerFormat = 'markdown' } = {}) {
+  constructor(question, previous_question_id, { answerFormat = 'markdown', answerSampling, ...options } = {}) {
+    this._options = Object.freeze(options);
     this.question_id = uuid();
     this.question = question;
     this.previous_answer_id = previous_question_id;
     this.timestamp = Date.now();
     this.datetime = formatDatetime(this.timestamp);
 
-    this.answer = answer(answerFormat);
-    this.relatedResources = [...articles({ rows: randomInt(6, 8) })];
-    this.sources = [...articles({ rows: randomInt(4, 6) })];
+    const sampling = answerSampling !== undefined ? Math.max(0, Math.min(1, answerSampling)) : undefined;
+
+    this.answer = answer({ format: answerFormat, sampling });
+    this.relatedResources = [...articles({ rows: randomInt(sample(6, sampling), sample(8, sampling)) })];
+    this.sources = [...articles({ rows: randomInt(sample(4, sampling), sample(6, sampling)) })];
 
     this.previous_question_id = previous_question_id && answers.get(previous_question_id) || undefined;
     answers.set(this.question_id, this);
@@ -69,10 +76,10 @@ class Answer {
 
   get() {
     const now = Date.now();
-    const elapsed = (now - this.timestamp) / 1000;
+    const elapsed = (now - this.timestamp) * (this._options.speedRate || 1) / 1000;
     const [answer_stage, answer, finished] = this._answer(elapsed);
-    const sources = this._sources(elapsed);
-    const related_resources = this._relatedResources(elapsed);
+    const sources = this._sources(elapsed, finished);
+    const related_resources = this._relatedResources(elapsed, finished);
     const { question_id, question, datetime, previous_question_id } = this;
 
     return {
@@ -102,15 +109,21 @@ class Answer {
     return ['result', text, finished];
   }
 
-  _sources(elapsed) {
+  _sources(elapsed, finished) {
     const { sources } = this;
+    if (finished) {
+      return sources;
+    }
     const { length } = sources;
     const loaded = Math.floor(length * elapsed / ITEMS_LOADING_TIME);
     return sources.slice(0, loaded);
   }
 
-  _relatedResources(elapsed) {
+  _relatedResources(elapsed, finished) {
     const { relatedResources } = this;
+    if (finished) {
+      return relatedResources;
+    }
     const { length } = relatedResources;
     const loaded = Math.floor(length * elapsed / ITEMS_LOADING_TIME);
     return relatedResources.slice(0, loaded);
@@ -118,14 +131,20 @@ class Answer {
 
 }
 
-export default function({ answerFormat }) {
-  const options = Object.freeze({ answerFormat });
+function getOptions(ctx, { answerFormat, answerSampling, speedRate, ...options } = {}) {
+  answerFormat = ctx.get('x-answer-format') || answerFormat;
+  answerSampling = Number(ctx.get('x-answer-sampling')) || answerSampling;
+  speedRate = Number(ctx.get('x-speed-rate')) || speedRate;
+  return Object.freeze({ answerFormat, answerSampling, speedRate, ...options });
+}
+
+export default function(defaultOptions) {
+  Object.freeze(defaultOptions);
   const router = new Router();
 
   router.post('/questions', (ctx) => {
     const { question, previous_answer_id } = parseBodyIfNecessary(ctx.request.body);
-    const answerFormat = ctx.get('x-answer-format') || options.answerFormat;
-    const answer = new Answer(question, previous_answer_id, { answerFormat });
+    const answer = new Answer(question, previous_answer_id, getOptions(ctx, defaultOptions));
     const data = {
       question_id: answer.id,
     };
