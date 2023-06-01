@@ -1,5 +1,6 @@
 import { randomInt, imageUrl, shuffle } from '../utils.js';
 import * as lorem from '../lorem.js';
+import * as languages from './languages.js';
 
 // TODO: wild mode that generates edge cases
 
@@ -8,7 +9,7 @@ export function markdown({ features, blocks = [8, 12], sampling = 1 } = {}) {
   return sample([
     () => atxHeading({ features }),
     () => paragraph({ features }),
-    () => fencedCodeBlock({ features }),
+    () => fencedCodeBlock({ lang: 'js', features }),
     () => paragraph({ features }),
     () => table({ features }),
     () => image(),
@@ -16,6 +17,7 @@ export function markdown({ features, blocks = [8, 12], sampling = 1 } = {}) {
     () => hr(),
     () => atxHeading({ features }),
     () => paragraph({ features }),
+    () => fencedCodeBlock({ features }),
     () => list({ features }),
     () => paragraph({ features }),
   ], sampling).join('\n\n');
@@ -224,11 +226,7 @@ function listItemPrefix(type, checked = 'random') {
 }
 
 function codeContent({ lang, size = [10, 30] }) {
-  // TODO
-  switch (lang) {
-    default:
-      return lorem.lorem({ output: 'multiline', size });
-  }
+  return lang && languages[lang] ? languages[lang]() : lorem.lorem({ output: 'multiline', size });
 }
 
 function tableRow(cells) {
