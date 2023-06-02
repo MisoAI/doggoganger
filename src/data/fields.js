@@ -1,5 +1,6 @@
 import * as lorem from './lorem.js';
-import { imageUrl } from './utils.js';
+import { imageUrl, sample } from './utils.js';
+import * as md from './markdown/index.js';
 
 export function image({ size = 300 } = {}) {
   return imageUrl(size);
@@ -46,4 +47,18 @@ export function price() {
 
 export function rating() {
   return Math.floor(Math.random() * 500) / 100 + 1;
+}
+
+export function answer({ format, sampling, features }) {
+  switch (format) {
+    case 'markdown':
+      return md.markdown({ sampling, features });
+    case 'plaintext':
+    default:
+      return lorem.lorem({
+        min: sample(50, sampling),
+        max: sample(50, sampling),
+        decorates: ['description'],
+      });
+  }
 }

@@ -29,3 +29,12 @@ export function imageUrl(size) {
   const sizePath = Array.isArray(size) ? size.length > 1 ? `${size[0]}/${size[1]}` : `${size[0]}` : `${size}`;
   return `https://picsum.photos/seed/${seed}/${sizePath}`;
 }
+
+export function formatDatetime(timestamp) {
+  const str = new Date(timestamp).toISOString();
+  return str.endsWith('Z') ? str.slice(0, -1) : str;
+}
+
+export function sample(size, sampling) {
+  return sampling !== undefined ? Math.ceil(size * sampling) : size;
+}

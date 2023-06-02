@@ -1,9 +1,4 @@
-import Router from '@koa/router';
-import { v4 as uuid } from 'uuid';
-import { lorem, md, articles, utils } from '../data/index.js';
-import { parseBodyIfNecessary } from './utils.js';
-
-const { randomInt } = utils;
+import { answer } from '../data/index.js';
 
 const CPS = 100;
 const ITEMS_LOADING_TIME = 3;
@@ -25,53 +20,29 @@ const STAGES = [
   },
 ];
 
-function formatDatetime(timestamp) {
-  const str = new Date(timestamp).toISOString();
-  return str.endsWith('Z') ? str.slice(0, -1) : str;
-}
+export default class Ask {
 
-function sample(size, sampling) {
-  return sampling !== undefined ? Math.ceil(size * sampling) : size;
-}
-
-function answer({ format, sampling }) {
-  switch (format) {
-    case 'markdown':
-      return md.markdown({ sampling });
-    case 'plaintext':
-    default:
-      return lorem.lorem({
-        min: sample(50, sampling),
-        max: sample(50, sampling),
-        decorates: ['description'],
-      });
+  constructor(options = {}) {
+    this._options = options;
+    this._answers = new Map();
   }
-}
 
-const answers = new Map();
+  questions(payload, options = {}) {
+    return new Answer(payload, { ...this._options, ...options });
+  }
+
+}
 
 class Answer {
 
-  constructor(question, previous_question_id, { answerFormat = 'markdown', answerSampling, ...options } = {}) {
+  constructor({ question, parent_question_id }, { answerFormat, answerSampling, answerLanguages, ...options } = {}) {
     this._options = Object.freeze(options);
-    this.question_id = uuid();
-    this.question = question;
-    this.previous_answer_id = previous_question_id;
-    this.timestamp = Date.now();
-    this.datetime = formatDatetime(this.timestamp);
-
-    const sampling = answerSampling !== undefined ? Math.max(0, Math.min(1, answerSampling)) : undefined;
-
-    this.answer = answer({ format: answerFormat, sampling });
-    this.relatedResources = [...articles({ rows: randomInt(sample(6, sampling), sample(8, sampling)) })];
-    this.sources = [...articles({ rows: randomInt(sample(4, sampling), sample(6, sampling)) })];
-
-    this.previous_question_id = previous_question_id && answers.get(previous_question_id) || undefined;
-    answers.set(this.question_id, this);
+    const timestamp = this.timestamp = Date.now();
+    this._data = answer({ question, parent_question_id, timestamp }, { answerFormat, answerSampling, answerLanguages });
   }
 
-  get id() {
-    return this.question_id;
+  get question_id() {
+    return this._data.question_id;
   }
 
   get() {
@@ -79,16 +50,15 @@ class Answer {
     const elapsed = (now - this.timestamp) * (this._options.speedRate || 1) / 1000;
     const [answer_stage, answer, finished] = this._answer(elapsed);
     const sources = this._sources(elapsed, finished);
-    const related_resources = this._relatedResources(elapsed, finished);
-    const { question_id, question, datetime, previous_question_id } = this;
+    const related_resources = this._related_resources(elapsed, finished);
+    const { question_id, question, datetime, parent_question_id } = this._data;
 
     return {
-      affiliation: undefined,
       answer,
       answer_stage,
       datetime,
       finished,
-      previous_question_id,
+      parent_question_id,
       question,
       question_id,
       related_resources,
@@ -103,14 +73,15 @@ class Answer {
         return [stage.name, stage.text, false];
       }
     }
+    const { answer } = this._data;
     const length = Math.floor(elapsed * CPS);
-    const finished = length >= this.answer.length;
-    const text = finished ? this.answer : this.answer.slice(0, length);
+    const finished = length >= answer.length;
+    const text = finished ? answer : answer.slice(0, length);
     return ['result', text, finished];
   }
 
   _sources(elapsed, finished) {
-    const { sources } = this;
+    const { sources } = this._data;
     if (finished) {
       return sources;
     }
@@ -119,48 +90,14 @@ class Answer {
     return sources.slice(0, loaded);
   }
 
-  _relatedResources(elapsed, finished) {
-    const { relatedResources } = this;
+  _related_resources(elapsed, finished) {
+    const { related_resources } = this._data;
     if (finished) {
-      return relatedResources;
+      return related_resources;
     }
-    const { length } = relatedResources;
+    const { length } = related_resources;
     const loaded = Math.floor(length * elapsed / ITEMS_LOADING_TIME);
-    return relatedResources.slice(0, loaded);
+    return related_resources.slice(0, loaded);
   }
 
-}
-
-function getOptions(ctx, { answerFormat, answerSampling, speedRate, ...options } = {}) {
-  answerFormat = ctx.get('x-answer-format') || answerFormat;
-  answerSampling = Number(ctx.get('x-answer-sampling')) || answerSampling;
-  speedRate = Number(ctx.get('x-speed-rate')) || speedRate;
-  return Object.freeze({ answerFormat, answerSampling, speedRate, ...options });
-}
-
-export default function(defaultOptions) {
-  Object.freeze(defaultOptions);
-  const router = new Router();
-
-  router.post('/questions', (ctx) => {
-    const { question, previous_answer_id } = parseBodyIfNecessary(ctx.request.body);
-    const answer = new Answer(question, previous_answer_id, getOptions(ctx, defaultOptions));
-    const data = {
-      question_id: answer.id,
-    };
-    ctx.body = JSON.stringify({ data });
-  });
-
-  router.get('/questions/:id/answer', (ctx) => {
-    const { id } = ctx.params;
-    const answer = answers.get(id);
-    if (!answer) {
-      ctx.status = 404;
-    } else {
-      const data = answer.get();
-      ctx.body = JSON.stringify({ data });
-    }
-  });
-
-  return router;
 }

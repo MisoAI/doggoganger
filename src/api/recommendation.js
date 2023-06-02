@@ -1,9 +1,21 @@
-import Router from '@koa/router';
-import { products } from './handlers.js';
+import { products } from '../data/index.js';
 
-const router = new Router();
+export default class Recommendation {
 
-router.post('/user_to_products', products);
-router.post('/product_to_products', products);
+  constructor(options) {
+    this._options = options;
+  }
 
-export default router;
+  user_to_products({ rows = 5 }) {
+    return {
+      products: [...products({ rows })],
+    };
+  }
+
+  product_to_products({ rows = 5 }) {
+    return {
+      products: [...products({ rows })],
+    };
+  }
+
+}

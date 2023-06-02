@@ -1,11 +1,5 @@
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
-import yaml from 'js-yaml';
 import { randomInt } from './utils.js';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const DEFAULT_WORDS = yaml.load(readFileSync(resolve(__dirname, './words.yaml'), 'utf8'));
+import DEFAULT_WORDS from './words.js';
 
 export function lorem({ decorates = [], output = 'string', size, min, max, ...options } = {}) {
   let iterator = limit(size || [min, max])(base(options));

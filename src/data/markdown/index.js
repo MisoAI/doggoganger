@@ -4,12 +4,32 @@ import * as languages from './languages.js';
 
 // TODO: wild mode that generates edge cases
 
+function extractLangFeatures(features = []) {
+  const languages = new Set();
+  const rest = [];
+  for (const feature of features) {
+    if (feature.startsWith('lang-')) {
+      let lang = feature.slice(5);
+      if (lang === 'javascript') {
+        lang = 'js';
+      }
+      languages.add(lang);
+    } else {
+      rest.push(feature);
+    }
+  }
+  return [[...languages], rest];
+}
+
 export function markdown({ features, blocks = [8, 12], sampling = 1 } = {}) {
+  let languages = [];
+  [languages, features] = extractLangFeatures(features);
   // TODO: block features
   return sample([
     () => atxHeading({ features }),
     () => paragraph({ features }),
-    () => fencedCodeBlock({ lang: 'js', features }),
+    ...languages.map(lang => () => fencedCodeBlock({ lang, features })),
+    ...(languages.length ? [] : [() => fencedCodeBlock({ features })]),
     () => paragraph({ features }),
     () => table({ features }),
     () => image(),
@@ -17,7 +37,6 @@ export function markdown({ features, blocks = [8, 12], sampling = 1 } = {}) {
     () => hr(),
     () => atxHeading({ features }),
     () => paragraph({ features }),
-    () => fencedCodeBlock({ features }),
     () => list({ features }),
     () => paragraph({ features }),
   ], sampling).join('\n\n');
@@ -69,7 +88,8 @@ export function fencedCodeBlock({ lang, content, size, fenceChar = '`' }) {
 }
 
 export function paragraph({ features, size = [20, 50] }) {
-  return lorem.lorem({ size, decorates: ['description', decorate({ features })] });
+  // force all inline features
+  return lorem.lorem({ size, decorates: ['description', decorate()] });
 }
 
 export function table({ features, columns = [2, 4], rows = [2, 8] }) {

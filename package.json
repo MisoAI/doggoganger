@@ -9,6 +9,7 @@
     "access": "public"
   },
   "scripts": {
+    "build:data": "node ./bin/data.js",
     "start": "nodemon src/index.js",
     "version": "node ./bin/version.js"
   },

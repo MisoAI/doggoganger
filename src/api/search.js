@@ -1,8 +1,15 @@
-import Router from '@koa/router';
-import { products } from './handlers.js';
+import { products } from '../data/index.js';
 
-const router = new Router();
+export default class Search {
 
-router.post('/search', products);
+  constructor(options) {
+    this._options = options;
+  }
 
-export default router;
+  search({ rows = 5 }) {
+    return {
+      products: [...products({ rows })],
+    };
+  }
+
+}

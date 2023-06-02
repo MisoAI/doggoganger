@@ -1,20 +1,13 @@
-import Router from '@koa/router';
-import ask from './ask.js';
-import recommendation from './recommendation.js';
-import search from './search.js';
-import interactions from './interactions.js';
+import Ask from './ask.js';
+import Search from './search.js';
+import Recommendation from './recommendation.js';
 
-function use(router, path, middleware) {
-  router.use(path, middleware.routes(), middleware.allowedMethods());
+export default class Api {
+
+  constructor(options) {
+    this.ask = new Ask(options);
+    this.search = new Search(options);
+    this.recommendation = new Recommendation(options);
+  }
+
 }
-
-export default function(options) {
-  const router = new Router();
-
-  use(router, '/ask', ask(options));
-  use(router, '/recommendation', recommendation);
-  use(router, '/search', search);
-  use(router, '/interactions', interactions);
-
-  return router;
-};
