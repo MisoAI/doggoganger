@@ -1,5 +1,5 @@
 import Api from './api/index.js';
 
-export default doggoganger = {
+export default {
   buildApi: (...args) => new Api(...args),
 };
