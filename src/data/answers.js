@@ -1,5 +1,4 @@
-import { v4 as uuid } from 'uuid';
-import { randomInt, formatDatetime, sample } from './utils.js';
+import { randomInt, formatDatetime, sample, uuid } from './utils.js';
 import * as fields from './fields.js';
 import { articles } from './articles.js';
 

@@ -23,6 +23,7 @@ jobs:
       - run: git config --global user.name "${{ github.actor }}"
       - run: git config --global user.email "github-action-${{ github.actor }}@users.noreply.github.com"
       - run: npm run version ${{ steps.version.outputs.version }}
+      - run: npm run build
       - run: npm publish
         if: "!github.event.release.prerelease"
         env:
