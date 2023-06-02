@@ -1,10 +1,10 @@
 # generated
 node_modules/
-dist/
 package-lock.json
 
 # env
 .env
+local/
 
 # log
 *.log
@@ -16,4 +16,3 @@ npm-debug.log*
 .parcel-cache
 
 .DS_Store
-local/
