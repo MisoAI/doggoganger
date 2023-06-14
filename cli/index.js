@@ -10,6 +10,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const SRC_DIR = join(__dirname, '../src');
 
 let { watch, ...argv } = yargs(hideBin(process.argv))
+  .option('verbose', {
+    alias: 'v',
+    describe: 'Be verbose',
+    type: 'boolean',
+  })
   .option('port', {
     alias: 'p',
     describe: 'Port of mock API endpoint',
@@ -21,10 +26,6 @@ let { watch, ...argv } = yargs(hideBin(process.argv))
     describe: 'Watch files for changes',
     type: 'boolean',
   })
-  .option('answer-format', {
-    describe: 'Answer field format in answers API response',
-    type: 'string',
-  })
   .option('serve', {
     alias: 's',
     describe: 'Serve static files as well',
@@ -32,8 +33,8 @@ let { watch, ...argv } = yargs(hideBin(process.argv))
   })
   .argv;
 
-const { port, serve, ['answer-format']: answerFormat } = argv;
-argv = { port, serve, answerFormat };
+const { verbose, port, serve } = argv;
+argv = { verbose, port, serve };
 
 if (watch) {
   const exec = `node ${resolve(__dirname, 'server.js')} ${JSON.stringify(JSON.stringify(argv))}`;

@@ -13,6 +13,7 @@ export default function doggoganger({ port = 9901, serve = false, ...options } =
   const api = _route(new Api(options));
   
   router.use('/api', api.routes(), api.allowedMethods());
+  router.use('/v1', api.routes(), api.allowedMethods());
 
   if (serve) {
     app
@@ -22,8 +23,32 @@ export default function doggoganger({ port = 9901, serve = false, ...options } =
 
   app
     .use(cors())
-    .use(koaBody())
+    .use(koaBody({
+      formLimit: '100mb',
+      textLimit: '100mb',
+      jsonLimit: '100mb',
+      onerror: function (err, ctx) {
+        console.error(err);
+        ctx.throw('body parse error', 422);
+      },
+    }))
+    .use(handleAllPath(options))
     .use(router.routes())
     .use(router.allowedMethods())
+    .use(handleUnrecognizedPath(options))
     .listen(port);
+}
+
+function handleAllPath({ verbose } = {}) {
+  return async (ctx, next) => {
+    verbose && console.log(`${ctx.method} ${ctx.url}`);
+    await next();
+  };
+}
+
+function handleUnrecognizedPath({ verbose } = {}) {
+  return async (ctx, next) => {
+    verbose && console.log(`Unrecognized path: ${ctx.method} ${ctx.url}`);
+    await next();
+  };
 }

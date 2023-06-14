@@ -13,7 +13,8 @@
     "build:js": "rollup -c",
     "build": "npm run build:data && npm run build:js",
     "start:js": "rollup -w -c rollup.config.dev.mjs",
-    "start": "nodemon src/index.js",
+    "start": "nodemon cli/index.js",
+    "dev": "npm run start -- -- -v",
     "version": "node ./bin/version.js"
   },
   "repository": {
@@ -35,7 +36,7 @@
     "koa": "^2.14.1",
     "koa-body": "^6.0.1",
     "koa-static": "^5.0.0",
-    "nodemon": "^2.0.15",
+    "nodemon": "^2.0.22",
     "yargs": "^17.5.1"
   },
   "devDependencies": {

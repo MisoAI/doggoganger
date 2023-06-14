@@ -9,7 +9,14 @@ export default function(api) {
     ctx.body = {
       took: 5,
       errors: false,
-      data: api.interactions.upload(data),
+      data: api.products.upload(data),
+    };
+  });
+
+  router.get('/_ids', (ctx) => {
+    ctx.body = {
+      message: 'success',
+      data: api.products.ids(),
     };
   });
 
