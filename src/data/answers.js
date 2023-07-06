@@ -14,7 +14,7 @@ export function answer({ question, parent_question_id, timestamp = Date.now() },
   const answer = fields.answer({ format: answerFormat, sampling, features });
   const related_resources = [...articles({ rows: sampleRandomInt(6, 8, sampling) })];
   const sources = [...articles({ rows: sampleRandomInt(4, 6, sampling) })];
-  const followup_questions = [...questions({ rows: sampleRandomInt(3, 6, sampling) })];
+  const followup_questions = [...questions({ rows: sampleRandomInt(3, 6) })];
 
   return {
     question,

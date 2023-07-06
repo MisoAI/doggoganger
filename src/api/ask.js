@@ -104,7 +104,7 @@ class Answer {
 
   _followup_questions(elapsed, finished) {
     const { followup_questions } = this._data;
-    if (finished) {
+    if (finished || !followup_questions) {
       return followup_questions;
     }
     const { length } = followup_questions;
