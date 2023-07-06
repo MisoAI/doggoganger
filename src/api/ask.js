@@ -51,6 +51,7 @@ class Answer {
     const [answer_stage, answer, finished] = this._answer(elapsed);
     const sources = this._sources(elapsed, finished);
     const related_resources = this._related_resources(elapsed, finished);
+    const followup_questions = this._followup_questions(elapsed, finished);
     const { question_id, question, datetime, parent_question_id } = this._data;
 
     return {
@@ -61,8 +62,9 @@ class Answer {
       parent_question_id,
       question,
       question_id,
-      related_resources,
       sources,
+      related_resources,
+      followup_questions,
     };
   }
 
@@ -98,6 +100,16 @@ class Answer {
     const { length } = related_resources;
     const loaded = Math.floor(length * elapsed / ITEMS_LOADING_TIME);
     return related_resources.slice(0, loaded);
+  }
+
+  _followup_questions(elapsed, finished) {
+    const { followup_questions } = this._data;
+    if (finished) {
+      return followup_questions;
+    }
+    const { length } = followup_questions;
+    const loaded = Math.floor(length * elapsed / ITEMS_LOADING_TIME);
+    return followup_questions.slice(0, loaded);
   }
 
 }

@@ -30,10 +30,11 @@ export function title({ size = [2, 6] } = {}) {
   });
 }
 
-export function description({ size = [10, 20] } = {}) {
+export function description({ size = [10, 20], ...options } = {}) {
+  const decorator = Object.keys(options).length ? ['description', options] : 'description';
   return lorem.lorem({
     size,
-    decorates: ['description'],
+    decorates: [decorator],
   });
 }
 

@@ -18,7 +18,18 @@ const FNS = {
 }
 
 function lookup(fn) {
-  return typeof fn === 'string' ? FNS[fn]() : fn;
+  switch (typeof fn) {
+    case 'string':
+      return FNS[fn]();
+    case 'function':
+      return fn;
+    case 'object':
+      if (Array.isArray(fn)) {
+        const [name, options = {}] = fn;
+        return FNS[name](options);
+      }
+  }
+  throw new Error(`Unrecognized decorator/output form: ${fn}`);
 }
 
 // base //
@@ -91,6 +102,7 @@ export function description({
     std: 5,
     min: 1,
   },
+  punctuation = '.',
 } = {}) {
   return function *(iterator) {
     let word;
@@ -105,12 +117,12 @@ export function description({
         slen = gaussMS(wordsPerSentence);
       }
       if (--slen === 0) {
-        word += '.';
+        word += punctuation;
       }
     }
     if (word) {
-      if (!word.endsWith('.')) {
-        word += '.';
+      if (!word.endsWith(punctuation)) {
+        word += punctuation;
       }
       yield word;
     }
