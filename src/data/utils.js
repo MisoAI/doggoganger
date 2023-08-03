@@ -42,3 +42,11 @@ export function formatDatetime(timestamp) {
 export function sample(size, sampling) {
   return sampling !== undefined ? Math.ceil(size * sampling) : size;
 }
+
+export function gaussRandom() {
+  return uniformRandom() + uniformRandom() + uniformRandom();
+}
+
+function uniformRandom() {
+  return Math.random() * 2 - 1;
+}

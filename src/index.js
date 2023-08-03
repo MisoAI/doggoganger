@@ -5,7 +5,8 @@ import serveStatic from 'koa-static';
 import { koaBody } from 'koa-body';
 import _route from './route/index.js';
 import Api from './api/index.js';
-import { exclusion } from './utils.js';
+import { exclusion, delay } from './utils.js';
+import { gaussRandom } from './data/utils.js';
 
 export default function doggoganger({ port = 9901, serve = false, ...options } = {}) {
   const app = new Koa();
@@ -33,6 +34,7 @@ export default function doggoganger({ port = 9901, serve = false, ...options } =
       },
     }))
     .use(handleAllPath(options))
+    .use(simulateLatency(options))
     .use(router.routes())
     .use(router.allowedMethods())
     .use(handleUnrecognizedPath(options))
@@ -42,6 +44,16 @@ export default function doggoganger({ port = 9901, serve = false, ...options } =
 function handleAllPath({ verbose } = {}) {
   return async (ctx, next) => {
     verbose && console.log(`${ctx.method} ${ctx.url}`);
+    await next();
+  };
+}
+
+function simulateLatency({ min = 200, max = 2000, verbose } = {}) {
+  // TODO: only apply to API calls
+  return async (_, next) => {
+    const time = ((min + max) + (gaussRandom() * (max - min))) / 2;
+    verbose && console.log(`Add latency: ${time}ms`);
+    await delay(time);
     await next();
   };
 }

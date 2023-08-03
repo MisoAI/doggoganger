@@ -1,4 +1,4 @@
-import { randomInt } from './utils.js';
+import { randomInt, gaussRandom } from './utils.js';
 import DEFAULT_WORDS from './words.js';
 
 export function lorem({ decorates = [], output = 'string', size, min, max, ...options } = {}) {
@@ -151,12 +151,4 @@ function gaussMS(args) {
     n = Math.min(max, n);
   }
   return Math.round(n);
-}
-
-function gaussRandom() {
-  return uniformRandom() + uniformRandom() + uniformRandom();
-}
-
-function uniformRandom() {
-  return Math.random() * 2 - 1;
 }

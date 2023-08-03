@@ -24,3 +24,7 @@ export async function exclusion(ctx, next) {
     ctx.status = 404;
   }
 }
+
+export async function delay(time) {
+  return new Promise(resolve => setTimeout(resolve, time));
+}
