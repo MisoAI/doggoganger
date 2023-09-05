@@ -4,7 +4,7 @@ import { dirname, resolve, join } from 'path';
 import nodemon from 'nodemon';
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
-import doggoganger from '../src/index.js';
+import { doggoganger } from '../src/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SRC_DIR = join(__dirname, '../src');
