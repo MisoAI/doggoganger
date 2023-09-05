@@ -20,5 +20,14 @@ export default function(api) {
     };
   });
 
+  router.get('/_status/:taskId', (ctx) => {
+    ctx.body = {
+      took: 100,
+      errors: false,
+      data: [],
+      code: 200,
+    };
+  });
+
   return router;
 }
