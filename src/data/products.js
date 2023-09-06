@@ -21,7 +21,7 @@ function product({} = {}) {
     description: fields.description(),
     //html,
     cover_image: fields.image(),
-    url: `/products/${id}`,
+    url: `https://mock/products/${id}`,
     sale_price: prices[0],
     original_price: prices[prices.length - 1],
     rating: fields.rating(),

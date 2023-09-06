@@ -11,26 +11,18 @@ function getOptionsFromCtx(ctx) {
 }
 
 export default function(api) {
-  const answers = new Map();
   const router = new Router();
 
   router.post('/questions', (ctx) => {
-    const { question, parent_question_id } = parseBodyIfNecessary(ctx.request.body);
-    const answer = api.ask.questions({ question, parent_question_id }, getOptionsFromCtx(ctx));
-    const { question_id } = answer;
-    answers.set(question_id, answer);
-    ctx.body = JSON.stringify({ data: { question_id } });
+    const payload = parseBodyIfNecessary(ctx.request.body);
+    const data = api.ask.questions(payload, getOptionsFromCtx(ctx));
+    ctx.body = JSON.stringify({ data });
   });
 
   router.get('/questions/:id/answer', (ctx) => {
     const { id } = ctx.params;
-    const answer = answers.get(id);
-    if (!answer) {
-      ctx.status = 404;
-    } else {
-      const data = answer.get();
-      ctx.body = JSON.stringify({ data });
-    }
+    const data = api.ask.answer(id);
+    ctx.body = JSON.stringify({ data });
   });
 
   return router;

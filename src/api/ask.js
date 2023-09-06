@@ -28,7 +28,20 @@ export default class Ask {
   }
 
   questions(payload, options = {}) {
-    return new Answer(payload, { ...this._options, ...options });
+    const answer = new Answer(payload, { ...this._options, ...options });
+    const { question_id } = answer;
+    this._answers.set(question_id, answer);
+    return { question_id };
+  }
+
+  answer(questionId) {
+    const answer = this._answers.get(questionId);
+    if (!answer) {
+      const error = new Error(`Question not found: ${questionId}`);
+      error.status = 404;
+      throw error;
+    }
+    return answer.get();
   }
 
 }
