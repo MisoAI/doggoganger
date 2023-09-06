@@ -21,7 +21,7 @@ function product({} = {}) {
     description: fields.description(),
     //html,
     cover_image: fields.image(),
-    url: `https://mock/products/${id}`,
+    url: `https://dummy.miso.ai/products/${id}`,
     sale_price: prices[0],
     original_price: prices[prices.length - 1],
     rating: fields.rating(),
