@@ -1,5 +1,5 @@
 import Router from '@koa/router';
-import { parseBodyIfNecessary } from './utils.js';
+import { handler, parseBodyIfNecessary } from './utils.js';
 
 function getOptionsFromCtx(ctx) {
   const speedRate = Number(ctx.get('x-speed-rate')) || undefined;
@@ -24,6 +24,8 @@ export default function(api) {
     const data = api.ask.answer(id);
     ctx.body = JSON.stringify({ data });
   });
+
+  router.post('/related_questions', handler(api.ask.related_questions, 'query'));
 
   return router;
 }

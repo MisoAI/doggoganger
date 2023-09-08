@@ -1,6 +1,6 @@
 import * as fields from './fields.js';
 
-export function *questions({ rows, ...options } = {}) {
+export function *questions({ rows = 5, ...options } = {}) {
   for (let i = 0; i < rows; i++) {
     yield question({ ...options, index: i });
   }

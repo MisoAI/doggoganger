@@ -1,4 +1,4 @@
-import { answer } from '../data/index.js';
+import { answer, questions } from '../data/index.js';
 
 const CPS = 100;
 const ITEMS_LOADING_TIME = 3;
@@ -42,6 +42,12 @@ export default class Ask {
       throw error;
     }
     return answer.get();
+  }
+
+  related_questions(payload) {
+    return {
+      related_questions: [...questions(payload)],
+    };
   }
 
 }
