@@ -19,7 +19,7 @@ export default async function fetch(api, url, { method = 'GET', body } = {}) {
     type = 'data';
   } else if (group === 'ask' && segments.length === 4 && segments[1] === 'questions' && segments[3] === 'answer') {
     name = 'answer';
-    body = segments[3];
+    body = segments[2];
   }
 
   if (!api[group][name]) {
