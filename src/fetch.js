@@ -17,7 +17,7 @@ export default async function fetch(api, url, { method = 'GET', body } = {}) {
   if (group === 'interactions' && segments.length === 1) {
     name = 'upload';
     type = 'data';
-  } else if (group === 'ask' && segments.length === 4 && segments[2] === 'questions' && segments[3] === 'answer') {
+  } else if (group === 'ask' && segments.length === 4 && segments[1] === 'questions' && segments[3] === 'answer') {
     name = 'answer';
     body = segments[3];
   }
