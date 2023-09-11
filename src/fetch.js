@@ -26,7 +26,8 @@ export default async function fetch(api, url, { method = 'GET', body } = {}) {
     throw new Error(`Unknown path: ${url.pathname}`);
   }
 
-  const resBody = await wrapResponse(api[group][name], type)(body);
+  const fn = api[group][name].bind(api[group]);
+  const resBody = await wrapResponse(fn, type)(body);
 
   return new Response(JSON.stringify(resBody), {
     status: 200,
