@@ -7,7 +7,7 @@ export function *articles({ rows, ...options } = {}) {
   }
 }
 
-function article({} = {}) {
+function article({ html } = {}) {
   const id = u.id();
 
   return {
@@ -17,7 +17,7 @@ function article({} = {}) {
     tags: fields.tags(),
     title: fields.title({ size: [4, 10] }),
     snippet: fields.description({ size: [20, 40] }),
-    html: fields.html(),
+    html: fields.html(html),
     cover_image: fields.image(),
     url: `/products/${id}`,
   };

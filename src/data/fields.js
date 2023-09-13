@@ -43,6 +43,10 @@ export function html({ paragraphs = 8, sections, paragraph, image: imageOptions 
     size: [30, 60],
     ...paragraph,
   };
+  imageOptions = {
+    size: [480, 270],
+    ...imageOptions,
+  };
   if (sections === undefined) {
     sections = Math.floor(paragraphs * (1 + Math.random()) / 4);
   }
