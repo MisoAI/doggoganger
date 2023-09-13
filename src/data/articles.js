@@ -17,7 +17,7 @@ function article({} = {}) {
     tags: fields.tags(),
     title: fields.title({ size: [4, 10] }),
     snippet: fields.description({ size: [20, 40] }),
-    //html,
+    html: fields.html(),
     cover_image: fields.image(),
     url: `/products/${id}`,
   };

@@ -38,6 +38,30 @@ export function description({ size = [10, 20], ...options } = {}) {
   });
 }
 
+export function html({ paragraphs = 8, sections, paragraph, image: imageOptions } = {}) {
+  paragraph = {
+    size: [30, 60],
+    ...paragraph,
+  };
+  if (sections === undefined) {
+    sections = Math.floor(paragraphs * (1 + Math.random()) / 4);
+  }
+  sections = Math.max(1, Math.min(sections, paragraphs));
+  const content = [];
+  const pps = paragraphs / sections;
+  let j = 0;
+  for (let i = 0; i < sections; i++) {
+    if (i > 0) {
+      content.push(`<h4>${title()}</h4>`);
+    }
+    while (j++ < (i + 1) * pps) {
+      content.push(`<p>${description(paragraph)}</p>`);
+    }
+    content.push(`<div class="image-container"><img src="${image(imageOptions)}"></div>`);
+  }
+  return content.join('');
+}
+
 export function availability() {
   return Math.random() > 0.3 ? 'IN_STOCK' : 'OUT_OF_STOCK';
 }

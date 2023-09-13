@@ -5,3 +5,4 @@ export * from './articles.js';
 export * from './questions.js';
 export * from './answers.js';
 export * as utils from './utils.js';
+export * as fields from './fields.js';
