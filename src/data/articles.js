@@ -37,12 +37,12 @@ function article({ html, fl = [] } = {}) {
   return article;
 }
 
-function property({ id }, field) {
+function property({ product_id }, field) {
   switch (field) {
     case 'cover_image':
       return fields.image();
     case 'url':
-      return `/products/${id}`;
+      return `/products/${product_id}`;
     case 'created_at':
     case 'updated_at':
     case 'published_at':
