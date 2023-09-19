@@ -3,7 +3,13 @@ import * as fields from './fields.js';
 import { articles } from './articles.js';
 import { questions } from './questions.js';
 
-export function answer({ question, parent_question_id, timestamp = Date.now() }, { answerFormat = 'markdown', answerSampling, answerLanguages = [] } = {}) {
+export function answer({
+  question,
+  parent_question_id,
+  source_fl = ['cover_image', 'url'],
+  related_resource_fl = ['cover_image', 'url'],
+  timestamp = Date.now(),
+}, { answerFormat = 'markdown', answerSampling, answerLanguages = [] } = {}) {
 
   const question_id = uuid();
   const datetime = formatDatetime(timestamp);
@@ -12,8 +18,8 @@ export function answer({ question, parent_question_id, timestamp = Date.now() },
   const features = answerLanguages.length ? answerLanguages.map(language => `lang-${language}`) : undefined;
 
   const answer = fields.answer({ format: answerFormat, sampling, features });
-  const related_resources = [...articles({ rows: sampleRandomInt(6, 8, sampling) })].map(excludeHtml);
-  const sources = [...articles({ rows: sampleRandomInt(4, 6, sampling) })].map(excludeHtml);
+  const related_resources = [...articles({ rows: sampleRandomInt(6, 8, sampling), fl: related_resource_fl })].map(excludeHtml);
+  const sources = [...articles({ rows: sampleRandomInt(4, 6, sampling), fl: source_fl })].map(excludeHtml);
   const followup_questions = [...questions({ rows: sampleRandomInt(3, 6) })];
 
   return {

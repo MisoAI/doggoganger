@@ -2,6 +2,16 @@ import * as lorem from './lorem.js';
 import { imageUrl, sample } from './utils.js';
 import * as md from './markdown/index.js';
 
+const DAY = 1000 * 60 * 60 * 24;
+const WEEK = DAY * 7;
+
+export function date({} = {}) {
+  const now = Date.now();
+  const max = now - DAY;
+  const min = max - WEEK * 8;
+  return new Date(min + Math.random() * (max - min)).toISOString();
+}
+
 export function image({ size = 300 } = {}) {
   return imageUrl(size);
 }

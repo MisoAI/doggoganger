@@ -54,10 +54,10 @@ export default class Ask {
 
 class Answer {
 
-  constructor({ question, parent_question_id }, { answerFormat, answerSampling, answerLanguages, ...options } = {}) {
+  constructor(payload, { answerFormat, answerSampling, answerLanguages, ...options } = {}) {
     this._options = Object.freeze(options);
     const timestamp = this.timestamp = Date.now();
-    this._data = answer({ question, parent_question_id, timestamp }, { answerFormat, answerSampling, answerLanguages });
+    this._data = answer({ ...payload, timestamp }, { answerFormat, answerSampling, answerLanguages });
   }
 
   get question_id() {
