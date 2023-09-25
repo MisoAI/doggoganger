@@ -1,4 +1,4 @@
-import { randomInt, gaussRandom } from './utils.js';
+import { randomInt, gaussRandom, iterateWithLastItemSignal as iterateWithLastItemSignal } from './utils.js';
 import DEFAULT_WORDS from './words.js';
 
 export function lorem({ decorates = [], output = 'string', size, min, max, ...options } = {}) {
@@ -105,27 +105,18 @@ export function description({
   punctuation = '.',
 } = {}) {
   return function *(iterator) {
-    let word;
     let slen = 0;
-    for (let _word of iterator) {
-      if (word) {
-        yield word;
-      }
-      word = _word;
+
+    yield* iterateWithLastItemSignal(iterator, function *(word, last) {
       if (slen === 0) {
         word = capitalize(word);
         slen = gaussMS(wordsPerSentence);
       }
-      if (--slen === 0) {
-        word += punctuation;
-      }
-    }
-    if (word) {
-      if (!word.endsWith(punctuation)) {
+      if (--slen === 0 || last) {
         word += punctuation;
       }
       yield word;
-    }
+    });
   };
 }
 

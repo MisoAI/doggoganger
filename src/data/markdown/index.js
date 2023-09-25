@@ -1,4 +1,4 @@
-import { randomInt, imageUrl, shuffle } from '../utils.js';
+import { randomInt, imageUrl, shuffle, iterateWithLastItemSignal } from '../utils.js';
 import * as lorem from '../lorem.js';
 import * as languages from './languages.js';
 
@@ -21,25 +21,32 @@ function extractLangFeatures(features = []) {
   return [[...languages], rest];
 }
 
-export function markdown({ features, blocks = [8, 12], sampling = 1 } = {}) {
+export function markdown({ sources, citation, features, blocks = [8, 12], sampling = 1 } = {}) {
   let languages = [];
   [languages, features] = extractLangFeatures(features);
   // TODO: block features
-  return sample([
+  let result = sample([
     () => atxHeading({ features }),
-    () => paragraph({ features }),
+    () => paragraph({ sources, citation, features }),
     ...languages.map(lang => () => fencedCodeBlock({ lang, features })),
     ...(languages.length ? [] : [() => fencedCodeBlock({ features })]),
-    () => paragraph({ features }),
+    () => paragraph({ sources, citation, features }),
     () => table({ features }),
     () => image(),
-    () => paragraph({ features }),
+    () => paragraph({ sources, citation, features }),
     () => hr(),
     () => atxHeading({ features }),
-    () => paragraph({ features }),
+    () => paragraph({ sources, citation, features }),
     () => list({ features }),
-    () => paragraph({ features }),
+    () => paragraph({ sources, citation, features }),
   ], sampling).join('\n\n');
+  if (citation && citation.unused && citation.unused.length) {
+    // flush all unused citations
+    const indicies = [...citation.unused];
+    indicies.sort((a, b) => a - b);
+    result += indicies.map(index => _citation(citation, sources[index])).join('');
+  }
+  return result;
 }
 
 function sample(fns, sampling) {
@@ -87,9 +94,13 @@ export function fencedCodeBlock({ lang, content, size, fenceChar = '`' }) {
   return `${fenceChar.repeat(3)}${lang || ''}\n${content}\n${fenceChar.repeat(3)}`;
 }
 
-export function paragraph({ features, size = [20, 50] }) {
+export function paragraph({ sources, citation, features, size = [20, 50] }) {
   // force all inline features
-  return lorem.lorem({ size, decorates: ['description', decorate()] });
+  const decorates = ['description', decorateInlineFeatures()];
+  if (sources && citation) {
+    decorates.push(decorateCitation(sources, citation));
+  }
+  return lorem.lorem({ size, decorates });
 }
 
 export function table({ features, columns = [2, 4], rows = [2, 8] }) {
@@ -171,7 +182,7 @@ const INLINE_FEATURE_LIST = Object.keys(INLINE_FEATURES);
 const INLINE_FEATURE_SET = new Set(INLINE_FEATURE_LIST);
 
 // decorator //
-export function decorate({ features = INLINE_FEATURE_LIST, size = [1, 3], rest = [0, 8] } = {}) {
+export function decorateInlineFeatures({ features = INLINE_FEATURE_LIST, size = [1, 3], rest = [0, 8] } = {}) {
   features = features.filter(f => INLINE_FEATURE_SET.has(f));
 
   const unused = shuffle([...features]);
@@ -184,29 +195,52 @@ export function decorate({ features = INLINE_FEATURE_LIST, size = [1, 3], rest =
   return function *(iterator) {
     let count = rollRest();
     let suffix;
-    let lastWord;
-    for (const word of iterator) {
-      if (lastWord) {
-        yield lastWord;
+
+    yield *iterateWithLastItemSignal(iterator, function *(word, last) {
+      // prefix if necessary
+      if (!suffix && count === 0) {
+        const [prefix, s] = INLINE_FEATURES[rollFeatureType()]();
+        word = `${prefix}${word}`;
+        count = rollFeatureSize();
+        suffix = s;
       }
-      if (count === 0) {
-        if (suffix) {
-          lastWord = `${word}${suffix}`;
+
+      // consume word count
+      count--;
+
+      // suffix if necessary
+      if (suffix) {
+        const len = word.length;
+        const lastChar = word.charAt(len - 1);
+        if (isPunctuation(lastChar)) {
+          word = `${word.substring(0, len - 1)}${suffix}${lastChar}`;
           suffix = undefined;
           count = rollRest();
-        } else {
-          const [prefix, s] = INLINE_FEATURES[rollFeatureType()]();
-          lastWord = `${prefix}${word}`;
-          suffix = s;
-          count = rollFeatureSize();
+        } else if (last || count === 0) {
+          word = `${word}${suffix}`;
+          suffix = undefined;
+          count = rollRest();
         }
-      } else {
-        lastWord = word;
-        count--;
       }
-    }
-    if (lastWord) {
-      yield suffix !== undefined ? `${lastWord}${suffix}` : lastWord;
+
+      // output
+      yield word;
+    });
+  };
+}
+
+export function decorateCitation(sources, { density = 0.667, unused, ...options }) {
+  const sourceLength = sources.length;
+  const rollIndex = () => unused && unused.length ? unused.pop() : randomInt(0, sourceLength - 1);
+
+  return function *(iterator) {
+    for (const word of iterator) {
+      // not ended with alphabet or number -> last word in sentence
+      if (word.charAt(word.length - 1) === '.' && Math.random() < density) {
+        yield `${word}${_citation(options, sources[rollIndex()])}`;
+      } else {
+        yield word;
+      }
     }
   };
 }
@@ -259,4 +293,12 @@ function multiply(obj, i) {
     arr.push(typeof obj === 'function' ? obj() : obj);
   }
   return arr;
+}
+
+function isPunctuation(char) {
+  return char === '.' || char === ',' || char === '!' || char === '?' || char === ':' || char === ';';
+}
+
+function _citation({ link, start, end }, { index, url }) {
+  return link ? `[${start}${index}${end}](${url})` : `${start}${index}${end}`;
 }

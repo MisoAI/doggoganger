@@ -88,10 +88,12 @@ export function rating() {
   return Math.floor(Math.random() * 500) / 100 + 1;
 }
 
-export function answer({ format, sampling, features }) {
+export function answer({ sources, format, citation, sampling, features }) {
   switch (format) {
     case 'markdown':
-      return md.markdown({ sampling, features });
+      let index = 1;
+      sources = sources.map(({ url }) => ({ url, index: index++ }));
+      return md.markdown({ sources, citation, sampling, features });
     case 'plaintext':
     default:
       return lorem.lorem({

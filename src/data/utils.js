@@ -3,7 +3,7 @@ export function uuid() {
 }
 
 export function randomInt(min, max) {
-  return max == null || (max <= min) ? min : (min + Math.floor(Math.random() * (max - min)));
+  return max == null || (max <= min) ? min : (min + Math.floor(Math.random() * (max - min + 1)));
 }
 
 // TODO: pass in size
@@ -49,4 +49,17 @@ export function gaussRandom() {
 
 function uniformRandom() {
   return Math.random() * 2 - 1;
+}
+
+export function *iterateWithLastItemSignal(iterator, fn) {
+  let last;
+  for (const item of iterator) {
+    if (last) {
+      yield* fn(last);
+    }
+    last = item;
+  }
+  if (last) {
+    yield* fn(last, true);
+  }
 }
