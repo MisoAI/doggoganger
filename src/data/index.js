@@ -1,8 +1,10 @@
-export * as md from './markdown/index.js';
-export * as lorem from './lorem.js';
+import * as md from './markdown/index.js';
+import * as lorem from './lorem.js';
+import * as utils from './utils.js';
+import * as fields from './fields.js';
+
+export { md, lorem, utils, fields };
 export * from './products.js';
 export * from './articles.js';
 export * from './questions.js';
 export * from './answers.js';
-export * as utils from './utils.js';
-export * as fields from './fields.js';
