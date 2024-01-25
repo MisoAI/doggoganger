@@ -2,6 +2,7 @@ import { answer, questions } from '../data/index.js';
 
 const CPS = 100;
 const ITEMS_LOADING_TIME = 3;
+const QUESTION_REVISED_TIME = 3;
 const STAGES = [
   {
     name: 'fetch',
@@ -67,11 +68,12 @@ class Answer {
   get() {
     const now = Date.now();
     const elapsed = (now - this.timestamp) * (this._options.speedRate || 1) / 1000;
+    const question = this._question(elapsed);
     const [answer_stage, answer, finished] = this._answer(elapsed);
     const sources = this._sources(elapsed, finished);
     const related_resources = this._related_resources(elapsed, finished);
     const followup_questions = this._followup_questions(elapsed, finished);
-    const { question_id, question, datetime, parent_question_id } = this._data;
+    const { question_id, datetime, parent_question_id } = this._data;
 
     return {
       answer,
@@ -85,6 +87,11 @@ class Answer {
       related_resources,
       followup_questions,
     };
+  }
+
+  _question(elapsed) {
+    const { question } = this._data;
+    return elapsed > QUESTION_REVISED_TIME ? `${question} [revised]` : question;
   }
 
   _answer(elapsed) {
