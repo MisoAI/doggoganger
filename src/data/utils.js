@@ -47,6 +47,10 @@ export function gaussRandom() {
   return uniformRandom() + uniformRandom() + uniformRandom();
 }
 
+export function rollLatency(min, max) {
+  return (min + max) / 2 + gaussRandom() * (max - min) / 6;
+}
+
 function uniformRandom() {
   return Math.random() * 2 - 1;
 }

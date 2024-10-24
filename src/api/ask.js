@@ -69,7 +69,7 @@ class Answer {
     const now = Date.now();
     const elapsed = (now - this.timestamp) * (this._options.speedRate || 1) / 1000;
     const question = this._question(elapsed);
-    const [answer_stage, answer, finished] = this._answer(elapsed);
+    const [answer_stage, answer, finished, revision] = this._answer(elapsed);
     const sources = this._sources(elapsed, finished);
     const related_resources = this._related_resources(elapsed, finished);
     const followup_questions = this._followup_questions(elapsed, finished);
@@ -80,6 +80,7 @@ class Answer {
       answer_stage,
       datetime,
       finished,
+      revision,
       parent_question_id,
       question,
       question_id,
@@ -95,17 +96,18 @@ class Answer {
   }
 
   _answer(elapsed) {
+    let elapsedInStage = elapsed;
     for (const stage of STAGES) {
-      elapsed -= stage.duration;
-      if (elapsed < 0) {
-        return [stage.name, stage.text, false];
+      elapsedInStage -= stage.duration;
+      if (elapsedInStage < 0) {
+        return [stage.name, stage.text, false, elapsed];
       }
     }
     const { answer } = this._data;
-    const length = Math.floor(elapsed * CPS);
+    const length = Math.floor(elapsedInStage * CPS);
     const finished = length >= answer.length;
     const text = finished ? answer : answer.slice(0, length);
-    return ['result', text, finished];
+    return ['result', text, finished, elapsed];
   }
 
   _sources(elapsed, finished) {

@@ -1,11 +1,11 @@
 import { delay, trimObj } from '../utils.js';
-import { gaussRandom } from '../data/utils.js';
+import { rollLatency } from '../data/utils.js';
 
 const DEFAULT_OPTIONS = {
   enabled: true,
   verbose: false,
-  min: 200,
-  max: 2000,
+  min: 100,
+  max: 5000,
 };
 
 export default function latency(options) {
@@ -19,8 +19,8 @@ export default function latency(options) {
       ...getOptionsFromCtx(ctx),
     };
     if (enabled) {
-      const time = (min + max) / 2 + gaussRandom() * (max - min) / 6;
-      verbose && console.log(`Add latency: ${time}ms`);
+      const time = rollLatency(min, max);
+      verbose && console.log(`Add request latency: ${time}ms`);
       await delay(time);
     }
     await next();
