@@ -36,6 +36,22 @@ export default function(api) {
     ctx.body = JSON.stringify({ data });
   });
 
+  router.post('/search', async (ctx) => {
+    const payload = parseBodyIfNecessary(ctx.request.body);
+    const data = api.ask.search(payload, getOptionsFromCtx(ctx));
+    const time = rollLatency(DEFAULT_LATENCY_OPTIONS.min, DEFAULT_LATENCY_OPTIONS.max);
+    await delay(time);
+    ctx.body = JSON.stringify({ data });
+  });
+
+  router.get('/search/:id/answer', async (ctx) => {
+    const { id } = ctx.params;
+    const data = api.ask.answer(id);
+    const time = rollLatency(DEFAULT_LATENCY_OPTIONS.min, DEFAULT_LATENCY_OPTIONS.max);
+    await delay(time);
+    ctx.body = JSON.stringify({ data });
+  });
+
   router.post('/related_questions', handler(api.ask.related_questions, 'query'));
 
   return router;

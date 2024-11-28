@@ -8,6 +8,10 @@ export default class Products {
     return [];
   }
 
+  batchDelete(ids) {
+    return [];
+  }
+
   ids() {
     const ids = [];
     for (let i = 0; i < 5000; i++) {

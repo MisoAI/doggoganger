@@ -2,15 +2,18 @@ import { randomInt, formatDatetime, sample, uuid, shuffle } from './utils.js';
 import * as fields from './fields.js';
 import { articles } from './articles.js';
 import { questions } from './questions.js';
+import { facets as generateFacetFields } from './facets.js';
 
 export function answer({
   question,
   parent_question_id,
+  fl = ['cover_image', 'url'],
   source_fl = ['cover_image', 'url'],
   related_resource_fl = ['cover_image', 'url'],
   cite_link = false,
   cite_start = '[',
   cite_end = ']',
+  facets,
   timestamp = Date.now(),
 }, { answerFormat = 'markdown', answerSampling, answerLanguages = [] } = {}) {
 
@@ -22,6 +25,10 @@ export function answer({
 
   const related_resources = [...articles({ rows: sampleRandomInt(6, 8, sampling), fl: related_resource_fl })].map(excludeHtml);
   const sources = [...articles({ rows: sampleRandomInt(4, 6, sampling), fl: source_fl })].map(excludeHtml);
+  const products = () => [...articles({ rows: sampleRandomInt(4, 6, sampling), fl })].map(excludeHtml);
+  const hits = () => randomInt(1000, 10000);
+
+  const facet_counts = facets ? { facet_fields: generateFacetFields({ facets }) } : undefined;
 
   const citation = {
     link: cite_link !== '0' && !!cite_link,
@@ -39,6 +46,9 @@ export function answer({
     datetime,
     answer,
     sources,
+    products,
+    hits,
+    facet_counts,
     related_resources,
     followup_questions,
   };

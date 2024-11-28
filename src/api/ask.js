@@ -1,3 +1,4 @@
+import { trimObj } from '../utils.js';
 import { answer, questions } from '../data/index.js';
 
 const CPS = 100;
@@ -21,6 +22,9 @@ const STAGES = [
   },
 ];
 
+const MODE_QUESTION = 0;
+const MODE_SEARCH = 1;
+
 export default class Ask {
 
   constructor(options = {}) {
@@ -29,10 +33,23 @@ export default class Ask {
   }
 
   questions(payload, options = {}) {
-    const answer = new Answer(payload, { ...this._options, ...options });
+    const answer = this._createAnswer(MODE_QUESTION, payload, options);
     const { question_id } = answer;
-    this._answers.set(question_id, answer);
     return { question_id };
+  }
+
+  search(payload, options = {}) {
+    let question_id = payload._meta && payload._meta.question_id;
+    const includeAnswer = payload.answer === undefined || payload.answer;
+    const answer = question_id && this._answers.get(question_id) || this._createAnswer(MODE_SEARCH, payload, options);
+    question_id = question_id || answer.question_id;
+    return includeAnswer ? { question_id, ...answer.searchResults } : answer.searchResults;
+  }
+
+  _createAnswer(mode, payload, options = {}) {
+    const answer = new Answer(mode, payload, { ...this._options, ...options });
+    this._answers.set(answer.question_id, answer);
+    return answer;
   }
 
   answer(questionId) {
@@ -55,7 +72,8 @@ export default class Ask {
 
 class Answer {
 
-  constructor(payload, { answerFormat, answerSampling, answerLanguages, ...options } = {}) {
+  constructor(mode, payload, { answerFormat, answerSampling, answerLanguages, ...options } = {}) {
+    this._mode = mode;
     this._options = Object.freeze(options);
     const timestamp = this.timestamp = Date.now();
     this._data = answer({ ...payload, timestamp }, { answerFormat, answerSampling, answerLanguages });
@@ -63,6 +81,13 @@ class Answer {
 
   get question_id() {
     return this._data.question_id;
+  }
+
+  get searchResults() {
+    const { facet_counts } = this._data;
+    const products = this._data.products();
+    const hits = this._data.hits();
+    return trimObj({ products, hits, facet_counts });
   }
 
   get() {
@@ -75,19 +100,34 @@ class Answer {
     const followup_questions = this._followup_questions(elapsed, finished);
     const { question_id, datetime, parent_question_id } = this._data;
 
-    return {
-      answer,
-      answer_stage,
-      datetime,
-      finished,
-      revision,
-      parent_question_id,
-      question,
-      question_id,
-      sources,
-      related_resources,
-      followup_questions,
-    };
+    switch (this._mode) {
+      case MODE_QUESTION:
+        return {
+          answer,
+          answer_stage,
+          datetime,
+          finished,
+          revision,
+          parent_question_id,
+          question,
+          question_id,
+          sources,
+          related_resources,
+          followup_questions,
+        };
+      case MODE_SEARCH:
+        return {
+          answer,
+          answer_stage,
+          datetime,
+          finished,
+          revision,
+          question_id,
+          sources,
+        };
+      default:
+        throw new Error(`Unknown mode: ${this._mode}`);
+    }
   }
 
   _question(elapsed) {

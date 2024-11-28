@@ -37,6 +37,8 @@ export default function doggoganger({ port = 9901, serve = false, ...options } =
     .use(router.allowedMethods())
     .use(handleUnrecognizedPath(options))
     .listen(port);
+
+  options.verbose && console.log(`API service running on port ${port}`);
 }
 
 function handleAllPath({ verbose } = {}) {

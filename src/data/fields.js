@@ -40,6 +40,15 @@ export function title({ size = [2, 6] } = {}) {
   });
 }
 
+export function term({ field }) {
+  const random = Math.random();
+  const size = random < 0.7 ? 1 : random < 0.9 ? 2 : 3;
+  return lorem.lorem({
+    size,
+    decorates: ['title'],
+  });
+}
+
 export function description({ size = [10, 20], ...options } = {}) {
   const decorator = Object.keys(options).length ? ['description', options] : 'description';
   return lorem.lorem({
