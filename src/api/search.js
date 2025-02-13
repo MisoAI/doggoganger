@@ -1,4 +1,4 @@
-import { products } from '../data/index.js';
+import { products, completions } from '../data/index.js';
 
 export default class Search {
 
@@ -9,6 +9,12 @@ export default class Search {
   search({ rows = 5 }) {
     return {
       products: [...products({ rows })],
+    };
+  }
+
+  autocomplete({ q, completion_fields = ['title'], rows = 5 }) {
+    return {
+      completions: completions({ q, completion_fields, rows }),
     };
   }
 

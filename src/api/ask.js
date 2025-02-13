@@ -1,5 +1,5 @@
 import { trimObj } from '../utils.js';
-import { answer, questions } from '../data/index.js';
+import { answer, questions, completions } from '../data/index.js';
 
 const CPS = 100;
 const ITEMS_LOADING_TIME = 3;
@@ -44,6 +44,16 @@ export default class Ask {
     const answer = question_id && this._answers.get(question_id) || this._createAnswer(MODE_SEARCH, payload, options);
     question_id = question_id || answer.question_id;
     return includeAnswer ? { question_id, ...answer.searchResults } : answer.searchResults;
+  }
+
+  autocomplete({ q, completion_fields = ['title'], rows = 5 }) {
+    return {
+      completions: completions({ q, completion_fields, rows }),
+    };
+  }
+
+  search_autocomplete(args) {
+    return this.autocomplete(args);
   }
 
   _createAnswer(mode, payload, options = {}) {
@@ -98,7 +108,7 @@ class Answer {
     const sources = this._sources(elapsed, finished);
     const related_resources = this._related_resources(elapsed, finished);
     const followup_questions = this._followup_questions(elapsed, finished);
-    const { question_id, datetime, parent_question_id } = this._data;
+    const { question_id, datetime, parent_question_id, images } = this._data;
 
     switch (this._mode) {
       case MODE_QUESTION:
@@ -111,6 +121,7 @@ class Answer {
           parent_question_id,
           question,
           question_id,
+          images,
           sources,
           related_resources,
           followup_questions,
@@ -123,6 +134,7 @@ class Answer {
           finished,
           revision,
           question_id,
+          images,
           sources,
         };
       default:

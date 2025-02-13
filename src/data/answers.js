@@ -1,6 +1,7 @@
 import { randomInt, formatDatetime, sample, uuid, shuffle } from './utils.js';
 import * as fields from './fields.js';
 import { articles } from './articles.js';
+import { images as _images } from './images.js';
 import { questions } from './questions.js';
 import { facets as generateFacetFields } from './facets.js';
 
@@ -24,6 +25,7 @@ export function answer({
   const features = answerLanguages.length ? answerLanguages.map(language => `lang-${language}`) : undefined;
 
   const related_resources = [...articles({ rows: sampleRandomInt(6, 8, sampling), fl: related_resource_fl })].map(excludeHtml);
+  const images = [..._images({ rows: sampleRandomInt(4, 6, sampling) })];
   const sources = [...articles({ rows: sampleRandomInt(4, 6, sampling), fl: source_fl })].map(excludeHtml);
   const products = () => [...articles({ rows: sampleRandomInt(4, 6, sampling), fl })].map(excludeHtml);
   const hits = () => randomInt(1000, 10000);
@@ -45,6 +47,7 @@ export function answer({
     ...(parent_question_id && { parent_question_id }),
     datetime,
     answer,
+    images,
     sources,
     products,
     hits,
