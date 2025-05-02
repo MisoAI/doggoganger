@@ -28,7 +28,7 @@ export function answer({
   const images = [..._images({ rows: sampleRandomInt(2, 12, sampling) })];
   const sources = [...articles({ rows: sampleRandomInt(4, 6, sampling), fl: source_fl })].map(excludeHtml);
   const products = () => [...articles({ rows: sampleRandomInt(4, 6, sampling), fl })].map(excludeHtml);
-  const hits = () => randomInt(1000, 10000);
+  const total = randomInt(1000, 10000);
 
   const facet_counts = facets ? { facet_fields: generateFacetFields({ facets }) } : undefined;
 
@@ -50,7 +50,7 @@ export function answer({
     images,
     sources,
     products,
-    hits,
+    total,
     facet_counts,
     related_resources,
     followup_questions,

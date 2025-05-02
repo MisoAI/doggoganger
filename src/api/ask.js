@@ -102,10 +102,9 @@ class Answer {
   }
 
   get searchResults() {
-    const { facet_counts } = this._data;
+    const { facet_counts, total } = this._data;
     const products = this._data.products();
-    const hits = this._data.hits();
-    return trimObj({ products, hits, facet_counts });
+    return trimObj({ products, total, facet_counts });
   }
 
   get() {
