@@ -1,5 +1,5 @@
 import { trimObj } from '../utils.js';
-import { answer, questions, completions } from '../data/index.js';
+import { answer, questions, completions, utils } from '../data/index.js';
 
 const CPS = 100;
 const ITEMS_LOADING_TIME = 3;
@@ -39,11 +39,17 @@ export default class Ask {
   }
 
   search(payload, options = {}) {
+    const miso_id = utils.uuid();
     let question_id = payload._meta && payload._meta.question_id;
     const includeAnswer = payload.answer === undefined || payload.answer;
     const answer = question_id && this._answers.get(question_id) || this._createAnswer(MODE_SEARCH, payload, options);
     question_id = question_id || answer.question_id;
-    return includeAnswer ? { question_id, ...answer.searchResults } : answer.searchResults;
+
+    const result = { miso_id, ...answer.searchResults };
+    if (includeAnswer) {
+      result.question_id = question_id;
+    }
+    return result;
   }
 
   autocomplete({ q, completion_fields = ['title'], rows = 5 }) {
@@ -73,8 +79,10 @@ export default class Ask {
   }
 
   related_questions(payload) {
+    const miso_id = utils.uuid();
     return {
       related_questions: [...questions(payload)],
+      miso_id,
     };
   }
 

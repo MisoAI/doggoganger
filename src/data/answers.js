@@ -25,7 +25,7 @@ export function answer({
   const features = answerLanguages.length ? answerLanguages.map(language => `lang-${language}`) : undefined;
 
   const related_resources = [...articles({ rows: sampleRandomInt(6, 8, sampling), fl: related_resource_fl })].map(excludeHtml);
-  const images = [..._images({ rows: sampleRandomInt(4, 6, sampling) })];
+  const images = [..._images({ rows: sampleRandomInt(2, 12, sampling) })];
   const sources = [...articles({ rows: sampleRandomInt(4, 6, sampling), fl: source_fl })].map(excludeHtml);
   const products = () => [...articles({ rows: sampleRandomInt(4, 6, sampling), fl })].map(excludeHtml);
   const hits = () => randomInt(1000, 10000);

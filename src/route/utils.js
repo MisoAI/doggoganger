@@ -1,3 +1,4 @@
+
 export function parseBodyIfNecessary(body) {
   if (typeof body === 'string') {
     return JSON.parse(body);
@@ -42,7 +43,6 @@ export function responseFunction(response) {
   }
   switch (response) {
     case 'query':
-      // TODO: miso_id
       return data => ({ data });
     case 'data':
       return data => ({ took: 5, errors: false, data });

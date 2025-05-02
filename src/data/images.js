@@ -12,7 +12,7 @@ function image({ fl = [] } = {}) {
 
   return {
     product_id: id,
-    image_src: fields.image(),
+    image_src: fields.image({ size: [1200, 400] }),
     image_alt: fields.title({ size: [2, 4] }),
     title: fields.title({ size: [4, 10] }),
     url: `/products/${id}`,
