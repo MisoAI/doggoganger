@@ -18,9 +18,9 @@ export function facets({ facets, ...options } = {}) {
   return results;
 }
 
-function facetCountList(facet, options) {
+function facetCountList(facet, { _ctrl = {}, ...options } = {}) {
   let { field, size = DEFAULT_FACET_SIZE } = facet;
-  size = Math.max(MIN_FACET_SIZE, Math.min(size, MAX_FACET_SIZE));
+  size = _ctrl.total === 0 ? 0 : Math.max(MIN_FACET_SIZE, Math.min(size, MAX_FACET_SIZE));
   let count = highestFacetCountValue(field, options);
 
   const usedTerms = new Set();
@@ -46,6 +46,7 @@ function getTerm(field, usedTerms) {
 }
 
 function highestFacetCountValue(field, options) {
+  // TODO: capped at _ctrl.total
   const [min, max] = HIGHEST_FACET_COUNT_RATIO_RANGE;
   return Math.ceil(Math.random() * (max - min) + min);
 }

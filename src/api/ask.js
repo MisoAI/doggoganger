@@ -45,6 +45,7 @@ export default class Ask {
     const answer = question_id && this._answers.get(question_id) || this._createAnswer(MODE_SEARCH, payload, options);
     question_id = question_id || answer.question_id;
 
+    // TODO: search results should not be bound to question_id
     const result = { miso_id, ...answer.searchResults };
     if (includeAnswer) {
       result.question_id = question_id;
@@ -102,8 +103,7 @@ class Answer {
   }
 
   get searchResults() {
-    const { facet_counts, total } = this._data;
-    const products = this._data.products();
+    const { products, total, facet_counts } = this._data;
     return trimObj({ products, total, facet_counts });
   }
 
