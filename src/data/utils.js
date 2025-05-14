@@ -67,3 +67,7 @@ export function *iterateWithLastItemSignal(iterator, fn) {
     yield* fn(last, true);
   }
 }
+
+export function excludeHtml({ html, ...rest }) {
+  return rest;
+}

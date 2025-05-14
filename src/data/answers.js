@@ -1,4 +1,4 @@
-import { randomInt, formatDatetime, sample, uuid, shuffle } from './utils.js';
+import { randomInt, formatDatetime, sample, uuid, shuffle, excludeHtml } from './utils.js';
 import * as fields from './fields.js';
 import { articles } from './articles.js';
 import { images as _images } from './images.js';
@@ -65,8 +65,4 @@ export function answer({
 
 function sampleRandomInt(min, max, sampling) {
   return randomInt(sample(min, sampling), sample(max, sampling));
-}
-
-function excludeHtml({ html, ...rest }) {
-  return rest;
 }
