@@ -87,6 +87,10 @@ export default class Ask {
     };
   }
 
+  trending_questions(payload) {
+    return this.related_questions(payload);
+  }
+
 }
 
 class Answer {
