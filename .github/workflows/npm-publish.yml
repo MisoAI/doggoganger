@@ -5,7 +5,16 @@ on:
     types: [published]
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - run: npm install
+      - run: npm test
+
   publish-npm:
+    needs: test
     environment: production
     runs-on: ubuntu-latest
     steps:
@@ -14,21 +23,20 @@ jobs:
         run: |
           VERSION=${{ github.event.release.tag_name }}
           echo "::set-output name=version::$(echo $VERSION | sed -e 's/v//gI')"
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          node-version: 16
           registry-url: https://registry.npmjs.org/
       - run: npm install
       - run: git config --global user.name "${{ github.actor }}"
       - run: git config --global user.email "github-action-${{ github.actor }}@users.noreply.github.com"
       - run: npm run version ${{ steps.version.outputs.version }}
       - run: npm run build
-      - run: npm publish
+      - run: npm publish --workspaces
         if: "!github.event.release.prerelease"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - run: npm publish --tag beta
+      - run: npm publish --workspaces --tag beta
         if: "github.event.release.prerelease"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

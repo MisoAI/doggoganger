@@ -1,50 +1,16 @@
 {
-  "name": "@miso.ai/doggoganger",
-  "description": "A dummy miso endpoint for demo and testing",
-  "type": "module",
-  "bin": {
-    "doggoganger": "cli/index.js"
-  },
-  "main": "src/index.js",
-  "module": "src/index.js",
-  "publishConfig": {
-    "access": "public"
-  },
+  "name": "@miso.ai/doggoganger-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/doggoganger"
+  ],
   "scripts": {
-    "build:data": "node ./bin/data.js",
-    "build:js": "rollup -c",
-    "build": "npm run build:data && npm run build:js",
-    "start:js": "rollup -w -c rollup.config.dev.mjs",
-    "start": "nodemon cli/index.js",
-    "dev": "npm run start -- -- -v",
+    "start": "npm run start -w packages/doggoganger",
+    "dev": "npm run dev -w packages/doggoganger",
+    "test": "npm run test --workspaces --if-present",
     "version": "node ./bin/version.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/MisoAI/doggoganger.git"
-  },
-  "homepage": "https://github.com/MisoAI/doggoganger/",
-  "license": "MIT",
-  "contributors": [
-    "simonpai <simon.pai@askmiso.com>"
-  ],
-  "bugs": {
-    "url": "https://github.com/MisoAI/doggoganger/issues"
-  },
-  "dependencies": {
-    "@koa/cors": "^5.0.0",
-    "@koa/router": "^12.0.0",
-    "js-yaml": "^4.1.0",
-    "koa": "^2.14.1",
-    "koa-body": "^6.0.1",
-    "koa-static": "^5.0.0",
-    "nodemon": "^3.0.1",
-    "yargs": "^17.5.1"
-  },
   "devDependencies": {
-    "@rollup/plugin-terser": "^0.4.3",
-    "rollup": "^3.23.0",
-    "rollup-plugin-livereload": "^2.0.5",
-    "rollup-plugin-serve": "^2.0.2"
+    "uvu": "^0.5.6"
   }
 }
