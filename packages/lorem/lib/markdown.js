@@ -1,5 +1,5 @@
-import { randomInt, imageUrl, shuffle, iterateWithLastItemSignal } from '../utils.js';
-import * as lorem from '../lorem.js';
+import { randomInt, imageUrl, shuffle, iterateWithLastItemSignal } from './utils.js';
+import * as lorem from './lorem.js';
 import * as languages from './languages.js';
 
 // TODO: wild mode that generates edge cases

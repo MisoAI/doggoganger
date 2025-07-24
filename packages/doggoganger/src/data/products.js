@@ -1,5 +1,4 @@
-import * as u from './utils.js';
-import * as fields from './fields.js';
+import { fields, utils } from '@miso.ai/lorem';
 
 export function *products({ rows, ...options } = {}) {
   for (let i = 0; i < rows; i++) {
@@ -8,8 +7,8 @@ export function *products({ rows, ...options } = {}) {
 }
 
 function product({} = {}) {
-  const id = u.id();
-  const prices = u.repeat(fields.price, [1, 2]);
+  const id = utils.id();
+  const prices = utils.repeat(fields.price, [1, 2]);
   prices.sort();
 
   return {

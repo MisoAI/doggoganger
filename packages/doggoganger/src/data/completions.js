@@ -1,5 +1,4 @@
-import * as u from './utils.js';
-import * as fields from './fields.js';
+import { fields, utils } from '@miso.ai/lorem';
 
 export function completions({ q, completion_fields, rows } = {}) {
   let index = 0;
@@ -21,7 +20,7 @@ function completionsForField(field, q, index, rows) {
 
 function completion(field, q, index) {
   const text = fields.title();
-  const i = u.randomInt(0, text.length);
+  const i = utils.randomInt(0, text.length);
   const prefix = text.substring(0, i);
   const suffix = text.substring(i);
   return {

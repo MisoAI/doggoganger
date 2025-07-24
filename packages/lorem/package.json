@@ -1,0 +1,27 @@
+{
+  "name": "@miso.ai/lorem",
+  "description": "Lorem support for doggoganger",
+  "type": "module",
+  "main": "lib/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "generate:data": "node ./bin/data.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MisoAI/doggoganger.git"
+  },
+  "homepage": "https://github.com/MisoAI/doggoganger/",
+  "license": "MIT",
+  "contributors": [
+    "simonpai <simon.pai@askmiso.com>"
+  ],
+  "bugs": {
+    "url": "https://github.com/MisoAI/doggoganger/issues"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}

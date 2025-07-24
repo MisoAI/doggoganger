@@ -1,4 +1,4 @@
-import * as fields from './fields.js';
+import { fields } from '@miso.ai/lorem';
 
 export function *questions({ rows = 5, ...options } = {}) {
   for (let i = 0; i < rows; i++) {

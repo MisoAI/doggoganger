@@ -2,7 +2,8 @@
   "name": "@miso.ai/doggoganger-monorepo",
   "private": true,
   "workspaces": [
-    "packages/doggoganger"
+    "packages/doggoganger",
+    "packages/lorem"
   ],
   "scripts": {
     "start": "npm run start -w packages/doggoganger",

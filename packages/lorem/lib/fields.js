@@ -1,6 +1,6 @@
 import * as lorem from './lorem.js';
 import { imageUrl, sample } from './utils.js';
-import * as md from './markdown/index.js';
+import * as md from './markdown.js';
 
 const DAY = 1000 * 60 * 60 * 24;
 const WEEK = DAY * 7;

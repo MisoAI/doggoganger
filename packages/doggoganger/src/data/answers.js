@@ -1,9 +1,10 @@
-import { randomInt, formatDatetime, sample, uuid, shuffle, excludeHtml } from './utils.js';
-import * as fields from './fields.js';
+import { fields, utils } from '@miso.ai/lorem';
 import { articles } from './articles.js';
 import { images as _images } from './images.js';
 import { questions } from './questions.js';
 import { facets as generateFacetFields } from './facets.js';
+
+const { randomInt, formatDatetime, sample, uuid, shuffle, excludeHtml } = utils;
 
 export function answer({
   _ctrl = {},

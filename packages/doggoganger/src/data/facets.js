@@ -1,4 +1,4 @@
-import * as fields from './fields.js';
+import { fields } from '@miso.ai/lorem';
 
 const DEFAULT_FACET_SIZE = 5;
 const MAX_FACET_SIZE = 10;

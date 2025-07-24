@@ -1,5 +1,4 @@
-import * as u from './utils.js';
-import * as fields from './fields.js';
+import { fields, utils } from '@miso.ai/lorem';
 
 export function *images({ rows, ...options } = {}) {
   for (let i = 0; i < rows; i++) {
@@ -8,7 +7,7 @@ export function *images({ rows, ...options } = {}) {
 }
 
 function image({ fl = [] } = {}) {
-  const id = u.id();
+  const id = utils.id();
 
   return {
     product_id: id,

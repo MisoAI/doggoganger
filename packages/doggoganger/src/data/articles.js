@@ -1,5 +1,4 @@
-import * as u from './utils.js';
-import * as fields from './fields.js';
+import { fields, utils } from '@miso.ai/lorem';
 
 const FIELDS = new Set([
   'cover_image',
@@ -16,7 +15,7 @@ export function *articles({ rows, ...options } = {}) {
 }
 
 function article({ html, fl = [] } = {}) {
-  const id = u.id();
+  const id = utils.id();
 
   const article = {
     product_id: id,
