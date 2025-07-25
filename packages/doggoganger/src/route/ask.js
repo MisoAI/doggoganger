@@ -1,7 +1,9 @@
 import Router from '@koa/router';
+import { utils } from '@miso.ai/lorem';
 import { handler, parseBodyIfNecessary } from './utils.js';
 import { delay } from '../utils.js';
-import { rollLatency } from '../data/utils.js';
+
+const { rollLatency } = utils;
 
 function getOptionsFromCtx(ctx) {
   const speedRate = Number(ctx.get('x-speed-rate')) || undefined;
