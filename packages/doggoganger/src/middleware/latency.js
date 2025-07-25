@@ -1,5 +1,5 @@
 import { delay, trimObj } from '../utils.js';
-import { rollLatency } from '../data/utils.js';
+import { utils } from '@miso.ai/lorem';
 
 const DEFAULT_OPTIONS = {
   enabled: true,
@@ -19,7 +19,7 @@ export default function latency(options) {
       ...getOptionsFromCtx(ctx),
     };
     if (enabled) {
-      const time = rollLatency(min, max);
+      const time = utils.rollLatency(min, max);
       verbose && console.log(`Add request latency: ${time}ms`);
       await delay(time);
     }
