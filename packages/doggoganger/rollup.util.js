@@ -1,3 +1,4 @@
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import serve from 'rollup-plugin-serve';
 import livereload from 'rollup-plugin-livereload';
@@ -7,6 +8,7 @@ export function config(env) {
   let plugins;
   if (prod) {
     plugins = [
+      nodeResolve(),
       terser({
         compress: {
           pure_getters: true,
@@ -18,6 +20,7 @@ export function config(env) {
     ];
   } else {
     plugins = [
+      nodeResolve(),
       serve({
         port: 10098,
       }),

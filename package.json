@@ -3,6 +3,7 @@
   "private": true,
   "workspaces": [
     "packages/doggoganger",
+    "packages/doggoganger-api",
     "packages/lorem"
   ],
   "scripts": {

@@ -12,7 +12,7 @@
   "scripts": {
     "build:js": "rollup -c",
     "build": "npm run build:js",
-    "start:js": "rollup -w -c rollup.config.dev.mjs",
+    "start:js": "rollup -w -c rollup.config.dev.js",
     "start": "nodemon ./cli/index.js",
     "dev": "npm run start -- -- -v"
   },
@@ -29,9 +29,10 @@
     "url": "https://github.com/MisoAI/doggoganger/issues"
   },
   "dependencies": {
-    "@miso.ai/lorem": "file:packages/lorem",
     "@koa/cors": "^5.0.0",
     "@koa/router": "^12.0.0",
+    "@miso.ai/doggoganger-api": "file:packages/doggoganger-api",
+    "@miso.ai/lorem": "file:packages/lorem",
     "koa": "^2.14.1",
     "koa-body": "^6.0.1",
     "koa-static": "^5.0.0",
@@ -39,6 +40,7 @@
     "yargs": "^17.5.1"
   },
   "devDependencies": {
+    "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.3",
     "rollup": "^3.23.0",
     "rollup-plugin-livereload": "^2.0.5",

@@ -1,4 +1,4 @@
-import Api from './api/index.js';
+import { Api } from '@miso.ai/doggoganger-api';
 
 export default function buildApi(...args) {
   return new Api(...args);

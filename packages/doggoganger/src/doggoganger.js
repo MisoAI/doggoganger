@@ -1,10 +1,10 @@
+import { Api } from '@miso.ai/doggoganger-api';
 import Koa from 'koa';
 import Router from '@koa/router';
 import cors from '@koa/cors';
 import serveStatic from 'koa-static';
 import { koaBody } from 'koa-body';
 import _route from './route/index.js';
-import Api from './api/index.js';
 import { exclusion } from './utils.js';
 
 export default function doggoganger({ port = 9901, serve = false, ...options } = {}) {

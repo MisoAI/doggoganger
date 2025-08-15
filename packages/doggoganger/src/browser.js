@@ -1,5 +1,4 @@
-import Api from './api/index.js';
-import * as data from './data/index.js';
+import { Api, data } from '@miso.ai/doggoganger-api';
 
 export default {
   buildApi: (...args) => new Api(...args),
