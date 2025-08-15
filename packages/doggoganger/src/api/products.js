@@ -22,7 +22,7 @@ export default class Products {
     };
   }
 
-  // TODO: delete (batch)
+  // TODO: status
 
 }
 

@@ -10,9 +10,8 @@
     "access": "public"
   },
   "scripts": {
-    "build:data": "node ./bin/data.js",
     "build:js": "rollup -c",
-    "build": "npm run build:data && npm run build:js",
+    "build": "npm run build:js",
     "start:js": "rollup -w -c rollup.config.dev.mjs",
     "start": "nodemon ./cli/index.js",
     "dev": "npm run start -- -- -v"

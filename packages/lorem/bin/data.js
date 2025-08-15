@@ -6,7 +6,7 @@ import yaml from 'js-yaml';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const WORDS_YAML = resolve(__dirname, '../data/words.yaml');
-const WORDS_JS = resolve(__dirname, '../lib/data/words.js');
+const WORDS_JS = resolve(__dirname, '../lib/words.js');
 
 const words = yaml.load(readFileSync(WORDS_YAML, 'utf8'));
 writeFileSync(WORDS_JS, `
