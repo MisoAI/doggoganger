@@ -1,6 +1,6 @@
 {
   "name": "@miso.ai/doggoganger",
-  "description": "A dummy miso endpoint for demo and testing",
+  "description": "A dummy Miso endpoint for demo and testing",
   "type": "module",
   "bin": {
     "doggoganger": "cli/index.js"
@@ -32,7 +32,6 @@
     "@miso.ai/lorem": "file:packages/lorem",
     "@koa/cors": "^5.0.0",
     "@koa/router": "^12.0.0",
-    "js-yaml": "^4.1.0",
     "koa": "^2.14.1",
     "koa-body": "^6.0.1",
     "koa-static": "^5.0.0",

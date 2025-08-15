@@ -21,7 +21,7 @@
   "bugs": {
     "url": "https://github.com/MisoAI/doggoganger/issues"
   },
-  "dependencies": {
+  "devDependencies": {
     "js-yaml": "^4.1.0"
   }
 }
