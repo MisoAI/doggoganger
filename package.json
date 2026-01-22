@@ -10,6 +10,7 @@
     "start": "npm run start -w packages/doggoganger",
     "dev": "npm run dev -w packages/doggoganger",
     "test": "npm run test --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
     "version": "node ./bin/version.js"
   },
   "devDependencies": {
