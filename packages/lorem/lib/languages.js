@@ -99,3 +99,64 @@ const [ x, y, ...rest ] = arr;
 // template literals
 ${'console.log(`The sum of ${a} and ${b} is ${sum(a, b)}.`);'}
 `.trim();
+
+export function html() {
+  return HTML;
+}
+
+const HTML = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sample Page</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/about">About</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Welcome</h1>
+    <p>This is a <strong>sample</strong> paragraph with <em>emphasis</em>.</p>
+
+    <ul>
+      <li>Item 1</li>
+      <li>Item 2</li>
+    </ul>
+
+    <form action="/submit" method="post">
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name" required>
+      <button type="submit">Submit</button>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Alpha</td>
+          <td>100</td>
+        </tr>
+      </tbody>
+    </table>
+  </main>
+
+  <footer>
+    <p>&copy; 2024 Example</p>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>
+`.trim();
