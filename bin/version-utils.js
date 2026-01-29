@@ -1,11 +1,13 @@
 import { fileURLToPath } from 'url';
-import { writeFileSync, existsSync } from 'fs';
+import { writeFileSync, existsSync, copyFileSync, unlinkSync } from 'fs';
 import { dirname, join as joinPath } from 'path';
 import { readPackageFileSync, writePackageFileSync } from './package.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = joinPath(__dirname, '..');
 const versionFileName = 'src/version.js';
+const packageFileName = 'package.json';
+const backupSuffix = '.bak';
 
 export const VERSION_REGEXP = /^\d+\.\d+\.\d+(?:-beta\.\d+)?$/;
 
@@ -13,6 +15,23 @@ function writeVersionFile(path, version) {
   const filePath = joinPath(rootDir, path, versionFileName);
   if (existsSync(filePath)) {
     writeFileSync(filePath, `export default '${version}';`);
+  }
+}
+
+function backupFile(path, fileName) {
+  const filePath = joinPath(rootDir, path, fileName);
+  const backupPath = filePath + backupSuffix;
+  if (existsSync(filePath)) {
+    copyFileSync(filePath, backupPath);
+  }
+}
+
+function restoreFile(path, fileName) {
+  const filePath = joinPath(rootDir, path, fileName);
+  const backupPath = filePath + backupSuffix;
+  if (existsSync(backupPath)) {
+    copyFileSync(backupPath, filePath);
+    unlinkSync(backupPath);
   }
 }
 
@@ -66,10 +85,14 @@ function restoreDependencyVersions(dependencies, projectPathToModuleName) {
   }
 }
 
-export function setVersion(version) {
+export function setVersion(version, { backup = false } = {}) {
   const { projects, projectPathToModuleName } = getProjects();
 
   for (const { projectPath, project } of projects) {
+    if (backup) {
+      backupFile(projectPath, packageFileName);
+      backupFile(projectPath, versionFileName);
+    }
     overwriteDependencyVersions(project.dependencies, version, projectPathToModuleName);
     overwriteDependencyVersions(project.devDependencies, version, projectPathToModuleName);
     overwriteDependencyVersions(project.peerDependencies, version, projectPathToModuleName);
@@ -82,15 +105,11 @@ export function setVersion(version) {
 }
 
 export function clearVersion() {
-  const { projects, projectPathToModuleName } = getProjects();
+  const { projects } = getProjects();
 
-  for (const { projectPath, project } of projects) {
-    restoreDependencyVersions(project.dependencies, projectPathToModuleName);
-    restoreDependencyVersions(project.devDependencies, projectPathToModuleName);
-    restoreDependencyVersions(project.peerDependencies, projectPathToModuleName);
-    delete project.version;
-    writePackageFileSync(joinPath(rootDir, projectPath), project);
-    writeVersionFile(projectPath, '0.0.0');
+  for (const { projectPath } of projects) {
+    restoreFile(projectPath, packageFileName);
+    restoreFile(projectPath, versionFileName);
   }
 
   console.log(`Version cleared`);

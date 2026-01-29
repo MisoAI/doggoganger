@@ -9,6 +9,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = joinPath(__dirname, '..');
 
 const VERSION = '0.0.1';
+const dryRun = process.argv.includes('--dry-run') || process.argv.includes('--dry');
 
 function run(command, args, options = {}) {
   return new Promise((resolve, reject) => {
@@ -58,53 +59,87 @@ async function prompt(question) {
 
 async function npmLogin() {
   console.log('\n--- npm login ---\n');
+  if (dryRun) {
+    console.log('[dry-run] Would run: npm login');
+    return;
+  }
   await run('npm', ['login']);
 }
 
-async function npmPublish() {
-  console.log('\n--- npm publish ---\n');
-
-  // Get workspace paths from root package.json
+async function getPackagesToPublish() {
   const root = readPackageFileSync(rootDir);
   const projectPaths = root.workspaces;
+  const toPublish = [];
+  const skipped = [];
 
   for (const projectPath of projectPaths) {
     const project = readPackageFileSync(joinPath(rootDir, projectPath));
     if (project.private) {
-      console.log(`Skipping private package: ${project.name}`);
+      skipped.push({ name: project.name, reason: 'private' });
       continue;
     }
     const exists = await packageExistsOnNpm(project.name);
     if (exists) {
-      console.log(`Skipping ${project.name} (already exists on npm)`);
+      skipped.push({ name: project.name, reason: 'already exists on npm' });
       continue;
     }
-    console.log(`Publishing ${project.name}...`);
-    await run('npm', ['publish', '--access', 'public'], {
-      cwd: joinPath(rootDir, projectPath),
-    });
+    toPublish.push({ projectPath, name: project.name });
+  }
+
+  return { toPublish, skipped };
+}
+
+async function npmPublish(packages) {
+  console.log('\n--- npm publish ---\n');
+
+  for (const { projectPath, name } of packages) {
+    if (dryRun) {
+      console.log(`[dry-run] Would publish: ${name}`);
+    } else {
+      console.log(`Publishing ${name}...`);
+      await run('npm', ['publish', '--access', 'public'], {
+        cwd: joinPath(rootDir, projectPath),
+      });
+    }
   }
 }
 
 async function main() {
+  if (dryRun) {
+    console.log('\n*** DRY RUN MODE ***\n');
+  }
+
   try {
-    // Step 1: Set version
+    // Step 1: Set version (with backup for restoration)
     console.log(`\n--- Setting version to ${VERSION} ---\n`);
-    setVersion(VERSION);
+    setVersion(VERSION, { backup: true });
 
     // Step 2: npm login
-    const answer = await prompt('\nDo you want to run npm login? (y/N): ');
-    if (answer.toLowerCase() === 'y') {
-      await npmLogin();
+    await npmLogin();
+
+    // Step 3: Check packages to publish
+    console.log('\n--- Checking packages ---\n');
+    const { toPublish, skipped } = await getPackagesToPublish();
+
+    for (const { name, reason } of skipped) {
+      console.log(`  Skip: ${name} (${reason})`);
+    }
+    for (const { name } of toPublish) {
+      console.log(`  Publish: ${name}`);
     }
 
-    // Step 3: npm publish
-    const publishAnswer = await prompt('\nProceed with npm publish? (y/N): ');
-    if (publishAnswer.toLowerCase() !== 'y') {
+    if (toPublish.length === 0) {
+      console.log('\nNo packages to publish.');
+      return;
+    }
+
+    // Step 4: Confirm and publish
+    const publishAnswer = await prompt(`\nPublish ${toPublish.length} package(s)? (Y/n): `);
+    if (publishAnswer.toLowerCase() === 'n') {
       console.log('Publish cancelled.');
       return;
     }
-    await npmPublish();
+    await npmPublish(toPublish);
 
     console.log('\n--- Publish complete! ---\n');
   } catch (error) {
