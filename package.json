@@ -1,5 +1,6 @@
 {
   "name": "@miso.ai/doggoganger-monorepo",
+  "type": "module",
   "private": true,
   "workspaces": [
     "packages/doggoganger",
@@ -11,7 +12,9 @@
     "dev": "npm run dev -w packages/doggoganger",
     "test": "npm run test --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
-    "version": "node ./bin/version.js"
+    "version": "node ./bin/version.js",
+    "clear-version": "node -e \"import('./bin/version-utils.js').then(m => m.clearVersion())\"",
+    "init-publish": "node ./bin/init-publish.js"
   },
   "devDependencies": {
     "uvu": "^0.5.6"
