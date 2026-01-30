@@ -1,4 +1,4 @@
-import * as lorem from './lorem.js';
+import * as words from './words.js';
 import { imageUrl, sample } from './utils.js';
 import * as md from './markdown.js';
 
@@ -17,7 +17,7 @@ export function image({ size = 300 } = {}) {
 }
 
 export function authors({ size = [1, 3] } = {}) {
-  return lorem.lorem({
+  return words.words({
     size,
     decorates: ['title'],
     output: 'array',
@@ -25,7 +25,7 @@ export function authors({ size = [1, 3] } = {}) {
 }
 
 export function tags({ size = [1, 4] } = {}) {
-  return lorem.lorem({
+  return words.words({
     size,
     output: 'array',
   });
@@ -34,7 +34,7 @@ export function tags({ size = [1, 4] } = {}) {
 // TODO: categories
 
 export function title({ size = [2, 6] } = {}) {
-  return lorem.lorem({
+  return words.words({
     size,
     decorates: ['title'],
   });
@@ -43,7 +43,7 @@ export function title({ size = [2, 6] } = {}) {
 export function term({ field }) {
   const random = Math.random();
   const size = random < 0.7 ? 1 : random < 0.9 ? 2 : 3;
-  return lorem.lorem({
+  return words.words({
     size,
     decorates: ['title'],
   });
@@ -51,7 +51,7 @@ export function term({ field }) {
 
 export function description({ size = [10, 20], ...options } = {}) {
   const decorator = Object.keys(options).length ? ['description', options] : 'description';
-  return lorem.lorem({
+  return words.words({
     size,
     decorates: [decorator],
   });
@@ -105,7 +105,7 @@ export function answer({ sources, format, citation, sampling, features }) {
       return md.markdown({ sources, citation, sampling, features });
     case 'plaintext':
     default:
-      return lorem.lorem({
+      return words.words({
         min: sample(50, sampling),
         max: sample(50, sampling),
         decorates: ['description'],

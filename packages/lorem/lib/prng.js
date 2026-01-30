@@ -16,6 +16,10 @@ class PRNG {
     return max == null || (max <= min) ? min : (min + Math.floor(this.random() * (max - min + 1)));
   }
 
+  randomGauss() {
+    return (this.random() + this.random() + this.random()) * 2 - 3;
+  }
+
   uuid() {
     return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, a => (a ^ this.randomInt(16)).toString(16));
   }

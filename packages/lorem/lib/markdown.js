@@ -1,5 +1,5 @@
 import { randomInt, imageUrl, shuffle, iterateWithLastItemSignal } from './utils.js';
-import * as lorem from './lorem.js';
+import * as words from './words.js';
 import * as languages from './languages.js';
 
 // TODO: wild mode that generates edge cases
@@ -68,12 +68,12 @@ export function hr() {
 }
 
 export function atxHeading({ features, level = [1, 6], size = [1, 8], content }) {
-  const words = content || lorem.lorem({ size });
+  const words = content || words.words({ size });
   return `${'#'.repeat(randomInt(...level))} ${words}`;
 }
 
 export function setextHeading({ features, level = [1, 2], size = [1, 8], content }) {
-  const words = content || lorem.lorem({ size });
+  const words = content || words.words({ size });
   return `${words}\n${'=-'.charAt(randomInt(...level) - 1).repeat(3)}`;
 }
 
@@ -101,18 +101,18 @@ export function paragraph({ sources, citation, features, size = [20, 50] }) {
   if (sources && citation) {
     decorates.push(decorateCitation(sources, citation));
   }
-  return lorem.lorem({ size, decorates });
+  return words.words({ size, decorates });
 }
 
 export function table({ features, columns = [2, 4], rows = [2, 8] }) {
   columns = randomInt(...columns);
   rows = randomInt(...rows);
   const defs = [...multiply({ size: 1 }, columns - 1), { size: [3, 8] }];
-  const header = lorem.lorem({ size: columns, output: 'array' });
+  const header = words.words({ size: columns, output: 'array' });
   const delimiter = defs.map(() => '---');
   const body = [ header, delimiter ];
   for (let i = 0; i < rows - 1; i++) {
-    body.push(defs.map(({ size }) => lorem.lorem({ size })));
+    body.push(defs.map(({ size }) => words.words({ size })));
   }
   return body.map(tableRow).join('\n');
 }
@@ -125,7 +125,7 @@ export function image({ url, imageSize = [400, 250], ...options } = {}) {
 // container blocks //
 export function blockquote({ features, size = [3, 5] }) {
   // TODO
-  return _blockquote(lorem.lorem({ size }));
+  return _blockquote(words.words({ size }));
 }
 
 const LIST_ITEM_TYPES = ['ordered', 'bullet', 'task'];
@@ -256,7 +256,7 @@ export function decorateCitation(sources, { density = 0.667, unused, ...options 
 
 // helper //
 function _content({ size = [1, 3], content } = {}) {
-  return content || lorem.lorem({ size });
+  return content || words.words({ size });
 }
 
 function _blockquote(content) {
@@ -289,7 +289,7 @@ function listItemPrefix(type, checked = 'random') {
 }
 
 function codeContent({ lang, size = [10, 30] }) {
-  return lang && languages[lang] ? languages[lang]() : lorem.lorem({ output: 'multiline', size });
+  return lang && languages[lang] ? languages[lang]() : words.words({ output: 'multiline', size });
 }
 
 function tableRow(cells) {
