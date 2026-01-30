@@ -1,11 +1,11 @@
-import { fields } from '@miso.ai/lorem';
+export class Questions {
 
-export function *questions({ rows = 5, ...options } = {}) {
-  for (let i = 0; i < rows; i++) {
-    yield question({ ...options, index: i });
+  constructor(data) {
+    this._fields = data._lorem.fields;
   }
-}
 
-function question({} = {}) {
-  return fields.description({ size: [4, 8], punctuation: '?' });
+  _question({} = {}) {
+    return this._fields.description({ size: [4, 8], punctuation: '?' });
+  }
+
 }

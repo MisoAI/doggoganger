@@ -1,20 +1,22 @@
-import { products } from '../data/index.js';
+import { misoData } from '../data/index.js';
 
-export default class Recommendation {
+export class Recommendation {
 
   constructor(options) {
     this._options = options;
   }
 
-  user_to_products({ rows = 5 }) {
+  user_to_products({ rows = 5, ...rest }, { seed } = {}) {
+    const data = misoData({ seed });
     return {
-      products: [...products({ rows })],
+      products: data.products({ rows }),
     };
   }
 
-  product_to_products({ rows = 5 }) {
+  product_to_products({ rows = 5, ...rest }, { seed } = {}) {
+    const data = misoData({ seed });
     return {
-      products: [...products({ rows })],
+      products: data.products({ rows }),
     };
   }
 

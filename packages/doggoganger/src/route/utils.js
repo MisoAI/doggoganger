@@ -6,33 +6,25 @@ export function parseBodyIfNecessary(body) {
   return body;
 }
 
+function getOptionsFromCtx(ctx) {
+  const seed = ctx.get('x-seed') || undefined;
+  return { seed };
+}
+
 export function handler(fn, response) {
-  fn = wrapResponse(fn, response);
+  response = responseFunction(response);
   return async (ctx) => {
     try {
-      ctx.body = await fn(parseBodyIfNecessary(ctx.request.body));
+      const payload = parseBodyIfNecessary(ctx.request.body);
+      const options = getOptionsFromCtx(ctx);
+      const result = await fn(payload, options);
+      ctx.body = response(result);
     } catch (error) {
       ctx.status = error.status || 500;
       ctx.body = {
         errors: true,
         message: error.message || '',
       };
-    }
-  };
-}
-
-export function wrapResponse(fn, response) {
-  response = responseFunction(response);
-  return async (payload) => {
-    try {
-      return response(await fn(payload));
-    } catch (error) {
-      error.status = error.status || 500;
-      error.data = {
-        errors: true,
-        message: error.message,
-      };
-      throw error;
     }
   };
 }

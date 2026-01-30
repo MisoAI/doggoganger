@@ -1,5 +1,5 @@
-import { Api } from '@miso.ai/doggoganger-api';
+import { api } from '@miso.ai/doggoganger-api';
 
 export default function buildApi(...args) {
-  return new Api(...args);
+  return api(...args);
 };

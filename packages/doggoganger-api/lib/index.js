@@ -1,4 +1,2 @@
-export { default as Api } from './api/index.js';
-import * as data from './data/index.js';
-
-export { data };
+export * from './api/index.js';
+export * from './data/index.js';

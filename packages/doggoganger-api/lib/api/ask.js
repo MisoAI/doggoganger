@@ -1,5 +1,5 @@
+import { misoData } from '../data/index.js';
 import { trimObj } from '../utils.js';
-import { answer, searchResults, questions, completions, utils } from '../data/index.js';
 
 const CPS = 100;
 const ITEMS_LOADING_TIME = 3;
@@ -25,40 +25,43 @@ const STAGES = [
 const MODE_QUESTION = 0;
 const MODE_SEARCH = 1;
 
-export default class Ask {
+export class Ask {
 
   constructor(options = {}) {
     this._options = options;
     this._answers = new Map();
   }
 
-  questions(payload, options = {}) {
-    const answer = this._createAnswer(MODE_QUESTION, payload, options);
+  questions(payload, { seed, ...options } = {}) {
+    const data = misoData({ seed });
+    const answer = this._createAnswer(data, MODE_QUESTION, payload, options);
     const { question_id } = answer;
     return { question_id };
   }
 
-  search(payload, options = {}) {
-    const miso_id = utils.uuid();
-    const result = { miso_id, ...searchResults(payload) };
+  search(payload, { seed, ...options } = {}) {
+    const data = misoData({ seed });
+    const miso_id = data._lorem.utils.uuid();
+    const result = { miso_id, ...data.searchResults(payload) };
     if (payload.answer === undefined || payload.answer) {
-      result.question_id = this._createAnswer(MODE_SEARCH, payload, options).question_id;
+      result.question_id = this._createAnswer(data, MODE_SEARCH, payload, options).question_id;
     }
     return result;
   }
 
-  autocomplete({ q, completion_fields = ['title'], rows = 5 }) {
+  autocomplete({ q, completion_fields = ['title'], rows = 5, ...rest }, { seed } = {}) {
+    const data = misoData({ seed });
     return {
-      completions: completions({ q, completion_fields, rows }),
+      completions: data.completions({ q, completion_fields, rows }),
     };
   }
 
-  search_autocomplete(args) {
-    return this.autocomplete(args);
+  search_autocomplete(args, options) {
+    return this.autocomplete(args, options);
   }
 
-  _createAnswer(mode, payload, options = {}) {
-    const answer = new Answer(mode, payload, { ...this._options, ...options });
+  _createAnswer(data, mode, payload, options = {}) {
+    const answer = new Answer(data, mode, payload, { ...this._options, ...options });
     this._answers.set(answer.question_id, answer);
     return answer;
   }
@@ -73,27 +76,28 @@ export default class Ask {
     return answer.get();
   }
 
-  related_questions(payload) {
-    const miso_id = utils.uuid();
+  related_questions(payload, { seed } = {}) {
+    const data = misoData({ seed });
+    const miso_id = data._lorem.utils.uuid();
     return {
-      related_questions: [...questions(payload)],
+      related_questions: data.questions(payload),
       miso_id,
     };
   }
 
-  trending_questions(payload) {
-    return this.related_questions(payload);
+  trending_questions(payload, options) {
+    return this.related_questions(payload, options);
   }
 
 }
 
 class Answer {
 
-  constructor(mode, payload, { answerFormat, answerSampling, answerLanguages, ...options } = {}) {
+  constructor(data, mode, payload, { answerFormat, answerSampling, answerLanguages, ...options } = {}) {
     this._mode = mode;
     this._options = Object.freeze(options);
     const timestamp = this.timestamp = Date.now();
-    this._data = answer({ ...payload, timestamp }, { answerFormat, answerSampling, answerLanguages });
+    this._data = data.answer({ ...payload, timestamp }, { answerFormat, answerSampling, answerLanguages });
   }
 
   get question_id() {

@@ -1,6 +1,11 @@
-import * as md from './markdown.js';
-import * as words from './words.js';
-import * as utils from './utils.js';
-import * as fields from './fields.js';
+// Main entry point - creates a seeded Lorem instance with all utilities attached
+export * from './lorem.js';
 
-export { md, words, utils, fields };
+// Export classes for direct use if needed
+export { Words } from './words.js';
+export { Markdown as Md } from './markdown.js';
+export { Fields } from './fields.js';
+export { Utils } from './utils.js';
+
+// Export pure utility functions that don't need PRNG
+export { formatDatetime, sample, iterateWithLastItemSignal, excludeHtml } from './utils.js';

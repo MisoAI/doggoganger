@@ -1,10 +1,10 @@
-export default class Interactions {
+export class Interactions {
 
   constructor(options) {
     this._options = options;
   }
 
-  upload(records) {
+  upload(records, { seed } = {}) {
     return [];
   }
 

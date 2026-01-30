@@ -1,38 +1,52 @@
-export function uuid() {
-  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, a => (a ^ Math.random() * 16 >> a / 4).toString(16));
-}
+export class Utils {
 
-export function randomInt(min, max) {
-  return max == null || (max <= min) ? min : (min + Math.floor(Math.random() * (max - min + 1)));
-}
-
-// TODO: pass in size
-export function repeat(fn, range) {
-  const n = randomInt(...range);
-  const result = [];
-  for (let i = 0; i < n; i++) {
-    result.push(fn());
+  constructor(lorem) {
+    this._prng = lorem._prng;
   }
-  return result;
-}
 
-export function id() {
-  return Math.random().toString(36).substring(2, 10);
-}
-
-export function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
+  uuid() {
+    return this._prng.uuid();
   }
-  return array;
+
+  randomInt(min, max) {
+    return this._prng.randomInt(min, max);
+  }
+
+  repeat(fn, range) {
+    const n = this._prng.randomInt(...range);
+    const result = [];
+    for (let i = 0; i < n; i++) {
+      result.push(fn());
+    }
+    return result;
+  }
+
+  id() {
+    // Generate a base-36 string using PRNG
+    let result = '';
+    for (let i = 0; i < 8; i++) {
+      result += this._prng.randomInt(0, 35).toString(36);
+    }
+    return result;
+  }
+
+  shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = this._prng.randomInt(0, i);
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  imageUrl(size) {
+    const seed = this._prng.randomInt(0, 999);
+    const sizePath = Array.isArray(size) ? size.length > 1 ? `${size[0]}/${size[1]}` : `${size[0]}` : `${size}`;
+    return `https://picsum.photos/seed/${seed}/${sizePath}`;
+  }
+
 }
 
-export function imageUrl(size) {
-  const seed = Math.floor(Math.random() * 1000);
-  const sizePath = Array.isArray(size) ? size.length > 1 ? `${size[0]}/${size[1]}` : `${size[0]}` : `${size}`;
-  return `https://picsum.photos/seed/${seed}/${sizePath}`;
-}
+// Pure utility functions (no randomness needed)
 
 export function formatDatetime(timestamp) {
   const str = new Date(timestamp).toISOString();
@@ -41,18 +55,6 @@ export function formatDatetime(timestamp) {
 
 export function sample(size, sampling) {
   return sampling !== undefined ? Math.ceil(size * sampling) : size;
-}
-
-export function gaussRandom() {
-  return uniformRandom() + uniformRandom() + uniformRandom();
-}
-
-export function rollLatency(min, max) {
-  return (min + max) / 2 + gaussRandom() * (max - min) / 6;
-}
-
-function uniformRandom() {
-  return Math.random() * 2 - 1;
 }
 
 export function *iterateWithLastItemSignal(iterator, fn) {

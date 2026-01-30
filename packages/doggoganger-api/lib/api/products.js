@@ -1,18 +1,18 @@
-export default class Products {
+export class Products {
 
   constructor(options) {
     this._options = options;
   }
 
-  upload(records) {
+  upload(records, { seed } = {}) {
     return [];
   }
 
-  batchDelete(ids) {
+  batchDelete(ids, { seed } = {}) {
     return [];
   }
 
-  ids() {
+  ids({ seed } = {}) {
     const ids = [];
     for (let i = 0; i < 5000; i++) {
       ids.push(mockProductId(i));

@@ -1,6 +1,6 @@
-import { Api, data } from '@miso.ai/doggoganger-api';
+import { api, misoData } from '@miso.ai/doggoganger-api';
 
 export default {
-  buildApi: (...args) => new Api(...args),
-  data,
+  buildApi: api,
+  misoData,
 };

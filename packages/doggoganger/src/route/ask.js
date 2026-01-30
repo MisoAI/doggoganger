@@ -1,17 +1,15 @@
 import Router from '@koa/router';
-import { utils } from '@miso.ai/lorem';
 import { handler, parseBodyIfNecessary } from './utils.js';
-import { delay } from '../utils.js';
-
-const { rollLatency } = utils;
+import { delay, rollLatency } from '../utils.js';
 
 function getOptionsFromCtx(ctx) {
+  const seed = ctx.get('x-seed') || undefined;
   const speedRate = Number(ctx.get('x-speed-rate')) || undefined;
   const answerFormat = ctx.get('x-answer-format') || undefined;
   const answerSampling = Number(ctx.get('x-answer-sampling')) || undefined;
   const answerLanguagesStr = ctx.get('x-answer-languages') || undefined;
   const answerLanguages = answerLanguagesStr ? answerLanguagesStr.split(',') : undefined;
-  return { answerFormat, answerSampling, answerLanguages, speedRate };
+  return { seed, answerFormat, answerSampling, answerLanguages, speedRate };
 }
 
 const DEFAULT_LATENCY_OPTIONS = {
@@ -54,7 +52,7 @@ export default function(api) {
     ctx.body = JSON.stringify({ data });
   });
 
-  router.post('/related_questions', handler(api.ask.related_questions, 'query'));
+  router.post('/related_questions', handler((p, o) => api.ask.related_questions(p, o), 'query'));
 
   return router;
 }
