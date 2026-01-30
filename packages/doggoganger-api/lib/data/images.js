@@ -1,14 +1,13 @@
 export class Images {
 
   constructor(data) {
-    this._fields = data._lorem.fields;
-    this._utils = data._lorem.utils;
+    this._lorem = data._lorem;
   }
 
   _image({ fl = [] } = {}) {
-    const { _fields: fields, _utils: utils } = this;
+    const { fields, prng } = this._lorem;
 
-    const id = utils.id();
+    const id = prng.shortId();
 
     return {
       product_id: id,

@@ -10,3 +10,16 @@ export function trimObj(obj) {
   }
   return trimmed;
 }
+
+export function formatDatetime(timestamp) {
+  const str = new Date(timestamp).toISOString();
+  return str.endsWith('Z') ? str.slice(0, -1) : str;
+}
+
+export function sample(size, sampling) {
+  return sampling !== undefined ? Math.ceil(size * sampling) : size;
+}
+
+export function excludeHtml({ html, ...rest }) {
+  return rest;
+}

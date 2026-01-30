@@ -41,7 +41,7 @@ export class Ask {
 
   search(payload, { seed, ...options } = {}) {
     const data = misoData({ seed });
-    const miso_id = data._lorem.utils.uuid();
+    const miso_id = data._lorem.prng.uuid();
     const result = { miso_id, ...data.searchResults(payload) };
     if (payload.answer === undefined || payload.answer) {
       result.question_id = this._createAnswer(data, MODE_SEARCH, payload, options).question_id;
@@ -78,7 +78,7 @@ export class Ask {
 
   related_questions(payload, { seed } = {}) {
     const data = misoData({ seed });
-    const miso_id = data._lorem.utils.uuid();
+    const miso_id = data._lorem.prng.uuid();
     return {
       related_questions: data.questions(payload),
       miso_id,

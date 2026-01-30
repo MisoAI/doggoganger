@@ -1,14 +1,13 @@
 export class Products {
 
   constructor(data) {
-    this._fields = data._lorem.fields;
-    this._utils = data._lorem.utils;
+    this._lorem = data._lorem;
   }
 
   _product({} = {}) {
-    const { _fields: fields, _utils: utils } = this;
+    const { fields, prng, utils } = this._lorem;
 
-    const id = utils.id();
+    const id = prng.shortId();
     const prices = utils.repeat(() => fields.price(), [1, 2]);
     prices.sort((a, b) => a - b);
 

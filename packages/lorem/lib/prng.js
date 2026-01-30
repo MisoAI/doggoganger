@@ -24,6 +24,14 @@ class PRNG {
     return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, a => (a ^ this.random() * 16 >> a / 4).toString(16));
   }
 
+  shortId() {
+    let result = '';
+    for (let i = 0; i < 8; i++) {
+      result += this.randomInt(0, 35).toString(36);
+    }
+    return result;
+  }
+
 }
 
 function splitMix32(seed) {

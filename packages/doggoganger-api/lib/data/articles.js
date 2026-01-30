@@ -9,14 +9,13 @@ const FIELDS = new Set([
 export class Articles {
 
   constructor(data) {
-    this._fields = data._lorem.fields;
-    this._utils = data._lorem.utils;
+    this._lorem = data._lorem;
   }
 
   _article({ html, fl = [] } = {}) {
-    const { _fields: fields, _utils: utils } = this;
+    const { fields, prng } = this._lorem;
 
-    const id = utils.id();
+    const id = prng.shortId();
 
     const article = {
       product_id: id,
@@ -38,7 +37,7 @@ export class Articles {
   }
 
   _property({ product_id }, field) {
-    const fields = this._fields;
+    const { fields } = this._lorem;
 
     switch (field) {
       case 'cover_image':

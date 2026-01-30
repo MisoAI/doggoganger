@@ -7,5 +7,3 @@ export { Markdown as Md } from './markdown.js';
 export { Fields } from './fields.js';
 export { Utils } from './utils.js';
 
-// Export pure utility functions that don't need PRNG
-export { formatDatetime, sample, iterateWithLastItemSignal, excludeHtml } from './utils.js';

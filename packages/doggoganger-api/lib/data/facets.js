@@ -8,8 +8,7 @@ const NEXT_FACET_COUNT_RATIO_RANGE = [0.75, 0.25];
 export class Facets {
 
   constructor(data) {
-    this._fields = data._lorem.fields;
-    this._utils = data._lorem.utils;
+    this._lorem = data._lorem;
   }
 
   _facets({ facets, ...options } = {}) {
@@ -38,11 +37,12 @@ export class Facets {
   }
 
   _getTerm(field, usedTerms) {
+    const { fields } = this._lorem;
     if (usedTerms.size > 50) {
-      return this._fields.term({ field });
+      return fields.term({ field });
     }
     while (true) {
-      const term = this._fields.term({ field });
+      const term = fields.term({ field });
       if (!usedTerms.has(term)) {
         usedTerms.add(term);
         return term;
@@ -52,12 +52,12 @@ export class Facets {
 
   _highestFacetCountValue(field, options) {
     const [min, max] = HIGHEST_FACET_COUNT_RATIO_RANGE;
-    return this._utils.randomInt(min, max);
+    return this._lorem.prng.randomInt(min, max);
   }
 
   _nextFacetCountValue(value, field, options) {
     const [min, max] = NEXT_FACET_COUNT_RATIO_RANGE;
-    const ratio = min + this._utils._prng.random() * (max - min);
+    const ratio = min + this._lorem.prng.random() * (max - min);
     return Math.ceil(value * ratio);
   }
 

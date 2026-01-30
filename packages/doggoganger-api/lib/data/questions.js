@@ -1,11 +1,11 @@
 export class Questions {
 
   constructor(data) {
-    this._fields = data._lorem.fields;
+    this._lorem = data._lorem;
   }
 
   _question({} = {}) {
-    return this._fields.description({ size: [4, 8], punctuation: '?' });
+    return this._lorem.fields.description({ size: [4, 8], punctuation: '?' });
   }
 
 }

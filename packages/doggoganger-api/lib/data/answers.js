@@ -1,11 +1,9 @@
-import { formatDatetime, sample, excludeHtml } from '@miso.ai/lorem';
+import { formatDatetime, sample, excludeHtml } from '../utils.js';
 
 export class Answers {
 
   constructor(data) {
     this._data = data;
-    this._fields = data._lorem.fields;
-    this._utils = data._lorem.utils;
   }
 
   _answer({
@@ -26,9 +24,10 @@ export class Answers {
     } = {},
   }, { answerFormat = 'markdown', answerSampling, answerLanguages = [] } = {}) {
 
-    const { _data: data, _fields: fields, _utils: utils } = this;
+    const data = this._data;
+    const { fields, prng, utils } = data._lorem;
 
-    const question_id = utils.uuid();
+    const question_id = prng.uuid();
     const datetime = formatDatetime(timestamp);
 
     const sampling = answerSampling !== undefined ? Math.max(0, Math.min(1, answerSampling)) : undefined;
@@ -38,7 +37,7 @@ export class Answers {
     const images = data.images({ rows: this._sampleRandomInt(2, 12, sampling) });
     const sources = data.articles({ rows: this._sampleRandomInt(4, 6, sampling), fl: source_fl }).map(excludeHtml);
 
-    const total = _ctrl.total !== undefined ? _ctrl.total : utils.randomInt(1000, 10000);
+    const total = _ctrl.total !== undefined ? _ctrl.total : prng.randomInt(1000, 10000);
     const products = data.articles({ rows: Math.min(total - page * rows, rows), fl }).map(excludeHtml);
 
     const facet_counts = facets ? { facet_fields: data.facets({ facets, _ctrl }) } : undefined;
@@ -69,7 +68,7 @@ export class Answers {
   }
 
   _sampleRandomInt(min, max, sampling) {
-    return this._utils.randomInt(sample(min, sampling), sample(max, sampling));
+    return this._data._lorem.prng.randomInt(sample(min, sampling), sample(max, sampling));
   }
 
 }

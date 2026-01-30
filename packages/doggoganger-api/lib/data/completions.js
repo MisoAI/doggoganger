@@ -1,8 +1,7 @@
 export class Completions {
 
   constructor(data) {
-    this._fields = data._lorem.fields;
-    this._utils = data._lorem.utils;
+    this._lorem = data._lorem;
   }
 
   _completions({ q, completion_fields, rows } = {}) {
@@ -24,10 +23,10 @@ export class Completions {
   }
 
   _completion(field, q, index) {
-    const { _fields: fields, _utils: utils } = this;
+    const { fields, prng } = this._lorem;
 
     const text = fields.title();
-    const i = utils.randomInt(0, text.length);
+    const i = prng.randomInt(0, text.length);
     const prefix = text.substring(0, i);
     const suffix = text.substring(i);
     return {

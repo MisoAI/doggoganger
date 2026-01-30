@@ -26,14 +26,18 @@ function generateComplexOutput(seed) {
     rating: l.fields.rating(),
     availability: l.fields.availability(),
 
-    // Utils
-    uuid: l.utils.uuid(),
-    id: l.utils.id(),
+    // PRNG
+    uuid: l.prng.uuid(),
     randomInts: [
-      l.utils.randomInt(0, 100),
-      l.utils.randomInt(0, 100),
-      l.utils.randomInt(0, 100),
+      l.prng.randomInt(0, 100),
+      l.prng.randomInt(0, 100),
+      l.prng.randomInt(0, 100),
     ],
+
+    // PRNG
+    shortId: l.prng.shortId(),
+
+    // Utils
     shuffled: l.utils.shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
 
     // Markdown

@@ -24,6 +24,10 @@ class Lorem {
     this.fields = new Fields(this);
   }
 
+  get prng() {
+    return this._prng;
+  }
+
   get seed() {
     return this._seed;
   }
