@@ -18,7 +18,7 @@ export class Answers {
     cite_end = ']',
     rows = 10,
     facets,
-    timestamp = Date.now(),
+    timestamp = Date.UTC(2026, 0, 1),
     _meta: {
       page = 0,
     } = {},
