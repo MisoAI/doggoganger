@@ -30,6 +30,10 @@ class MisoData {
     this._answers = new Answers(this);
   }
 
+  get lorem() {
+    return this._lorem;
+  }
+
   // Articles
   articles({ rows, ...options } = {}) {
     const results = [];
