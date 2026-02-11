@@ -6,4 +6,4 @@ export { Words } from './words.js';
 export { Markdown as Md } from './markdown.js';
 export { Fields } from './fields.js';
 export { Utils } from './utils.js';
-
+export { randomSeed } from './prng.js';

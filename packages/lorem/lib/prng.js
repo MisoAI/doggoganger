@@ -20,6 +20,10 @@ class PRNG {
     return (this.random() + this.random() + this.random()) * 2 - 3;
   }
 
+  seed() {
+    return this.random() * 0x100000000 >>> 0;
+  }
+
   uuid() {
     return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, a => (a ^ this.random() * 16 >> a / 4).toString(16));
   }
@@ -52,7 +56,7 @@ function rotl(x, k) {
   return ((x << k) | (x >>> (32 - k))) >>> 0;
 }
 
-function randomSeed() {
+export function randomSeed() {
   return Math.random() * 0x100000000 >>> 0;
 }
 

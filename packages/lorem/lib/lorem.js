@@ -3,6 +3,7 @@ import { Words } from './words.js';
 import { Markdown } from './markdown.js';
 import { Fields } from './fields.js';
 import { Utils } from './utils.js';
+import { randomSeed } from './prng.js';
 
 export function lorem(options) {
   return new Lorem(options);
@@ -10,7 +11,7 @@ export function lorem(options) {
 
 class Lorem {
 
-  constructor({ seed } = {}) {
+  constructor({ seed = randomSeed() } = {}) {
     this._seed = seed;
     this._prng = prng({ seed });
 
