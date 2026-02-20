@@ -12,6 +12,10 @@ class PRNG {
     return this._engine.next() / 0x100000000;
   }
 
+  randomBool(probability = 0.5) {
+    return this.random() < probability;
+  }
+
   randomInt(min, max) {
     return max == null || (max <= min) ? min : (min + Math.floor(this.random() * (max - min + 1)));
   }

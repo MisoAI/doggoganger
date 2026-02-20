@@ -1,3 +1,4 @@
+import { version } from '@miso.ai/lorem';
 import Router from '@koa/router';
 import { handler, parseBodyIfNecessary } from './utils.js';
 import { delay, rollLatency } from '../utils.js';
@@ -25,7 +26,7 @@ export default function(api) {
     const data = api.ask.questions(payload, getOptionsFromCtx(ctx));
     const time = rollLatency(DEFAULT_LATENCY_OPTIONS.min, DEFAULT_LATENCY_OPTIONS.max);
     await delay(time);
-    ctx.body = JSON.stringify({ data });
+    ctx.body = JSON.stringify({ data, version });
   });
 
   router.get('/questions/:id/answer', async (ctx) => {
@@ -33,7 +34,7 @@ export default function(api) {
     const data = api.ask.answer(id);
     const time = rollLatency(DEFAULT_LATENCY_OPTIONS.min, DEFAULT_LATENCY_OPTIONS.max);
     await delay(time);
-    ctx.body = JSON.stringify({ data });
+    ctx.body = JSON.stringify({ data, version });
   });
 
   router.post('/search', async (ctx) => {
@@ -41,7 +42,7 @@ export default function(api) {
     const data = api.ask.search(payload, getOptionsFromCtx(ctx));
     const time = rollLatency(DEFAULT_LATENCY_OPTIONS.min, DEFAULT_LATENCY_OPTIONS.max);
     await delay(time);
-    ctx.body = JSON.stringify({ data });
+    ctx.body = JSON.stringify({ data, version });
   });
 
   router.get('/search/:id/answer', async (ctx) => {
@@ -49,7 +50,7 @@ export default function(api) {
     const data = api.ask.answer(id);
     const time = rollLatency(DEFAULT_LATENCY_OPTIONS.min, DEFAULT_LATENCY_OPTIONS.max);
     await delay(time);
-    ctx.body = JSON.stringify({ data });
+    ctx.body = JSON.stringify({ data, version });
   });
 
   router.post('/related_questions', handler((p, o) => api.ask.related_questions(p, o), 'query'));

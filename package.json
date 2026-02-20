@@ -14,7 +14,8 @@
     "build": "npm run build --workspaces --if-present",
     "version": "node ./bin/version.js",
     "clear-version": "node -e \"import('./bin/version-utils.js').then(m => m.clearVersion())\"",
-    "init-publish": "node ./bin/init-publish.js"
+    "init-publish": "node ./bin/init-publish.js",
+    "link": "npm install -g ./packages/doggoganger"
   },
   "devDependencies": {
     "uvu": "^0.5.6"

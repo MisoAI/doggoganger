@@ -8,17 +8,37 @@ export class Utils {
     const n = this._prng.randomInt(...range);
     const result = [];
     for (let i = 0; i < n; i++) {
-      result.push(fn());
+      result.push(typeof fn === 'function' ? fn() : fn);
     }
     return result;
   }
 
   shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = this._prng.randomInt(0, i);
-      [array[i], array[j]] = [array[j], array[i]];
+    return this.select(array);
+  }
+
+  selectOne(array) {
+    return array[this._prng.randomInt(0, array.length - 1)];
+  }
+
+  select(array, n) {
+    if (n === 1) {
+      return [this.selectOne(array)];
     }
-    return array;
+    const copy = [...array];
+    const len = copy.length;
+    if (n === undefined) {
+      n = len;
+    }
+    if (n < 0) {
+      throw new Error('n must be non-negative');
+    }
+    n = Math.min(n, len);
+    for (let i = 0; i < n; i++) {
+      const j = this._prng.randomInt(i, len - 1);
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy.slice(0, n);
   }
 
   imageUrl(size) {

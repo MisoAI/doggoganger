@@ -1,10 +1,33 @@
 import * as languages from './languages.js';
 
+// TODO: emoji
+
+const FEATURES = [
+  ['paragraph', 5],
+  ['heading', 2],
+  ['list', 2],
+  ['table', 2],
+  ['hr', 1],
+  ['blockQuote', 1],
+  ['codeBlock', 1],
+  ['rawHtml', 1],
+  ['image', 1],
+];
+
+const WEIGHTED_FEATURES = FEATURES.reduce((acc, [feature, weight]) => {
+  for (let i = 0; i < weight; i++) {
+    acc.push(feature);
+  }
+  return acc;
+}, []);
+
 export class Markdown {
 
   constructor(lorem) {
+    this._lorem = lorem;
     this._prng = lorem._prng;
     this._words = lorem.words;
+    this._code = lorem.code;
   }
 
   // TODO: wild mode that generates edge cases
@@ -26,10 +49,17 @@ export class Markdown {
     return [[...languages], rest];
   }
 
-  markdown({ sources, citation, features, blocks = [8, 12], sampling = 1 } = {}) {
+  markdown({ features, blocks = [8, 12], ...options } = {}) {
+    const { sources, citation } = options;
+    const blockCount = this._lorem.prng.randomInt(...blocks);
+    const selection = this._lorem.utils.select(WEIGHTED_FEATURES, blockCount);
+
+    let result = selection.map(feature => this[feature](options)).join('\n\n');
+
+    // TODO: block features
+    /*
     let langs = [];
     [langs, features] = this._extractLangFeatures(features);
-    // TODO: block features
     let result = this._sample([
       () => this.atxHeading({ features }),
       () => this.paragraph({ sources, citation, features }),
@@ -40,18 +70,21 @@ export class Markdown {
       () => this.image(),
       () => this.paragraph({ sources, citation, features }),
       () => this.hr(),
-      () => this.html(),
+      () => this.rawHtml(),
       () => this.atxHeading({ features }),
       () => this.paragraph({ sources, citation, features }),
       () => this.list({ features }),
       () => this.paragraph({ sources, citation, features }),
     ], sampling).join('\n\n');
+    */
+
     if (citation && citation.unused && citation.unused.length) {
       // flush all unused citations
       const indicies = [...citation.unused];
       indicies.sort((a, b) => a - b);
       result += indicies.map(index => this._citation(citation, sources[index])).join('');
     }
+
     return result;
   }
 
@@ -69,7 +102,13 @@ export class Markdown {
   hr() {
     // wild mode: while spaces at the beginning (< 4), in between, in the end
     // wild mode: no line break for '*'
-    return '*-_'.charAt(this._prng.randomInt(0, 2)).repeat(this._prng.randomInt(3, 6));
+    const c = '*-_'.charAt(this._prng.randomInt(0, 2));
+    const len = this._prng.randomInt(3, 6);
+    return c.repeat(len);
+  }
+
+  heading(options) {
+    return this._prng.randomBool(0.75) ? this.atxHeading(options) : this.setextHeading(options);
   }
 
   atxHeading({ features, level = [1, 6], size = [1, 8], content } = {}) {
@@ -79,11 +118,16 @@ export class Markdown {
 
   setextHeading({ features, level = [1, 2], size = [1, 8], content } = {}) {
     const text = content || this._words.words({ size });
-    return `${text}\n${'=-'.charAt(this._prng.randomInt(...level) - 1).repeat(3)}`;
+    const c = '=-'.charAt(this._prng.randomInt(...level) - 1);
+    return `${text}\n${c.repeat(3)}`;
   }
 
   linkReferenceDefinition({ label, destination, title }) {
     return `[${label}]: ${destination}${title !== undefined ? ` ${title}` : ''}`;
+  }
+
+  codeBlock(options) {
+    return this._prng.randomBool(0.75) ? this.fencedCodeBlock(options) : this.indentedCodeBlock(options);
   }
 
   indentedCodeBlock({ lang, content, size }) {
@@ -128,9 +172,9 @@ export class Markdown {
   }
 
   // container blocks //
-  blockquote({ features, size = [3, 5] } = {}) {
+  blockQuote({ features, size = [3, 5] } = {}) {
     // TODO
-    return this._blockquote(this._words.words({ size }));
+    return this._blockQuote(this._words.words({ size }));
   }
 
   list({ features, type = 'random', count = [1, 8], size = [5, 15] } = {}) {
@@ -165,7 +209,7 @@ export class Markdown {
     return `[${this._content(options)}](${url})`;
   }
 
-  html({} = {}) {
+  rawHtml({} = {}) {
     return `<div>${this._svg()}</div>`;
   }
 
@@ -271,7 +315,7 @@ export class Markdown {
     return content || this._words.words({ size });
   }
 
-  _blockquote(content) {
+  _blockQuote(content) {
     return content.split('\n').map(line => `> ${line}`).join('\n');
   }
 
@@ -301,7 +345,7 @@ export class Markdown {
   }
 
   _codeContent({ lang, size = [10, 30] }) {
-    return lang && languages[lang] ? languages[lang]() : this._words.words({ output: 'multiline', size });
+    return this._prng.randomBool() ? this._code[lang || 'any']() : this._words.words({ output: 'multiline', size });
   }
 
   _tableRow(cells) {

@@ -1,3 +1,4 @@
+import { version } from '@miso.ai/lorem';
 
 export function parseBodyIfNecessary(body) {
   if (typeof body === 'string') {
@@ -22,6 +23,7 @@ export function handler(fn, response) {
     } catch (error) {
       ctx.status = error.status || 500;
       ctx.body = {
+        version,
         errors: true,
         message: error.message || '',
       };
@@ -35,9 +37,9 @@ export function responseFunction(response) {
   }
   switch (response) {
     case 'query':
-      return data => ({ data });
+      return data => ({ data, version });
     case 'data':
-      return data => ({ took: 5, errors: false, data });
+      return data => ({ took: 5, errors: false, data, version });
     default:
       throw new Error(`Unknown response type: ${response}`);
   }

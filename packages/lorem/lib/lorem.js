@@ -2,6 +2,7 @@ import { prng } from './prng.js';
 import { Words } from './words.js';
 import { Markdown } from './markdown.js';
 import { Fields } from './fields.js';
+import { Code } from './code/index.js';
 import { Utils } from './utils.js';
 import { randomSeed } from './prng.js';
 
@@ -17,10 +18,12 @@ class Lorem {
 
     // Initialize in dependency order:
     // utils and words have no dependencies on other classes
-    // markdown depends on words
-    // fields depends on words and markdown
+    // code depends on utils
+    // markdown depends on words, code
+    // fields depends on words, markdown
     this.utils = new Utils(this);
     this.words = new Words(this);
+    this.code = new Code(this);
     this.markdown = new Markdown(this);
     this.fields = new Fields(this);
   }
