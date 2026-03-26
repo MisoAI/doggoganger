@@ -2,8 +2,10 @@ import { misoData } from '../data/index.js';
 import { trimObj } from '../utils.js';
 
 const CPS = 100;
-const ITEMS_LOADING_TIME = 3;
-const QUESTION_REVISED_TIME = 3;
+const ITEMS_LOADING_TIME = 3; // seconds
+const QUESTION_REVISED_TIME = 3; // seconds
+const MOCK_POLLING_INTERVAL = 1; // seconds
+
 const STAGES = [
   {
     name: 'fetch',
@@ -96,8 +98,10 @@ class Answer {
   constructor(data, mode, payload, { answerFormat, answerSampling, answerLanguages, ...options } = {}) {
     this._mode = mode;
     this._options = Object.freeze(options);
-    const timestamp = this.timestamp = Date.now();
-    this._data = data.answer({ ...payload, timestamp }, { answerFormat, answerSampling, answerLanguages });
+    this._data = data.answer(payload, { answerFormat, answerSampling, answerLanguages });
+
+    this._timestamp = Date.now();
+    this._index = 1;
   }
 
   get question_id() {
@@ -110,8 +114,7 @@ class Answer {
   }
 
   get() {
-    const now = Date.now();
-    const elapsed = (now - this.timestamp) * (this._options.speedRate || 1) / 1000;
+    const elapsed = this._elapsed();
     const question = this._question(elapsed);
     const [answer_stage, answer, finished, revision] = this._answer(elapsed);
     const sources = this._sources(elapsed, finished);
@@ -149,6 +152,12 @@ class Answer {
       default:
         throw new Error(`Unknown mode: ${this._mode}`);
     }
+  }
+
+  _elapsed() {
+    return this._options.temporal ?
+      (Date.now() - this._timestamp) * (this._options.speedRate || 1) / 1000 :
+      this._index++ * MOCK_POLLING_INTERVAL;
   }
 
   _question(elapsed) {
