@@ -2,7 +2,7 @@ import { test } from 'uvu';
 import * as assert from 'uvu/assert';
 import { api } from '../lib/index.js';
 
-// With temporal: false, each answer() call increments an internal index used
+// With detemporize: true, each answer() call increments an internal index used
 // as the elapsed time (seconds). MOCK_POLLING_INTERVAL = 1s, stages are:
 //   fetch: 1.5s, verify: 1.5s, generate: 1.5s  (total 4.5s)
 // So: poll 1 → fetch, poll 2 → verify, poll 3 → generate,
@@ -12,7 +12,7 @@ const SEED = 42;
 const PAYLOAD = { q: 'What is Miso?' };
 
 function makeAsk() {
-  return api({ temporal: false }).ask;
+  return api({ detemporize: true }).ask;
 }
 
 test('questions() returns a question_id', () => {

@@ -155,9 +155,9 @@ class Answer {
   }
 
   _elapsed() {
-    return this._options.temporal ?
-      (Date.now() - this._timestamp) * (this._options.speedRate || 1) / 1000 :
-      this._index++ * MOCK_POLLING_INTERVAL;
+    return this._options.detemporize ?
+      this._index++ * MOCK_POLLING_INTERVAL :
+      (Date.now() - this._timestamp) * (this._options.speedRate || 1) / 1000;
   }
 
   _question(elapsed) {

@@ -7,7 +7,7 @@ const SEED = 42;
 const BASE_URL = 'http://doggoganger';
 
 test('POST /ask/questions returns a question_id', async () => {
-  const api = buildApi({ temporal: false });
+  const api = buildApi({ detemporize: true });
   const res = await fetch(api, `${BASE_URL}/ask/questions`, {
     method: 'POST',
     body: { q: 'What is Miso?' },
@@ -23,8 +23,8 @@ test('POST /ask/questions returns a question_id', async () => {
 });
 
 test('POST /ask/questions with same seed returns same question_id', async () => {
-  const api1 = buildApi({ temporal: false });
-  const api2 = buildApi({ temporal: false });
+  const api1 = buildApi({ detemporize: true });
+  const api2 = buildApi({ detemporize: true });
 
   const res1 = await fetch(api1, `${BASE_URL}/ask/questions`, {
     method: 'POST',
@@ -44,8 +44,8 @@ test('POST /ask/questions with same seed returns same question_id', async () => 
 });
 
 test('POST /ask/questions with different seeds returns different question_ids', async () => {
-  const api1 = buildApi({ temporal: false });
-  const api2 = buildApi({ temporal: false });
+  const api1 = buildApi({ detemporize: true });
+  const api2 = buildApi({ detemporize: true });
 
   const res1 = await fetch(api1, `${BASE_URL}/ask/questions`, {
     method: 'POST',
@@ -65,7 +65,7 @@ test('POST /ask/questions with different seeds returns different question_ids', 
 });
 
 test('POST /ask/questions accepts JSON string body', async () => {
-  const api = buildApi({ temporal: false });
+  const api = buildApi({ detemporize: true });
   const res = await fetch(api, `${BASE_URL}/ask/questions`, {
     method: 'POST',
     body: JSON.stringify({ q: 'What is Miso?' }),
