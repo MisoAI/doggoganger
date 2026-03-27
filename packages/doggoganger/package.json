@@ -14,7 +14,8 @@
     "build": "npm run build:js",
     "start:js": "rollup -w -c rollup.config.dev.js",
     "start": "nodemon ./cli/index.js",
-    "dev": "npm run start -- -- -v"
+    "dev": "npm run start -- -- -v",
+    "test": "uvu test"
   },
   "repository": {
     "type": "git",

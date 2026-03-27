@@ -22,13 +22,13 @@ export default async function fetch(api, url, { method = 'GET', body, seed } = {
     body = segments[2];
   }
 
-  if (!api[group][name]) {
+  const apiNode = api[group];
+  if (!apiNode[name]) {
     throw new Error(`Unknown path: ${url.pathname}`);
   }
 
-  const fn = api[group][name].bind(api[group]);
   const response = responseFunction(type);
-  const result = await fn(body, { seed });
+  const result = await apiNode[name](body, { seed });
   const resBody = response(result);
 
   return new Response(JSON.stringify(resBody), {
