@@ -51,15 +51,25 @@ export class Ask {
     return result;
   }
 
-  autocomplete({ q, completion_fields = ['title'], rows = 5, ...rest }, { seed } = {}) {
+  query_suggestion({ q, rows = 5, ...rest }, { seed } = {}) {
     const data = misoData({ seed });
     return {
-      completions: data.completions({ q, completion_fields, rows }),
+      completions: data.simpleCompletions({ q, rows, ...rest }),
     };
   }
 
-  search_autocomplete(args, options) {
-    return this.autocomplete(args, options);
+  autocomplete({ q, rows = 5, ...rest }, { seed } = {}) {
+    const data = misoData({ seed });
+    return {
+      completions: data.simpleCompletions({ q, rows, ...rest }),
+    };
+  }
+
+  search_autocomplete({ q, completion_fields = ['title'], rows = 5, ...rest }, { seed } = {}) {
+    const data = misoData({ seed });
+    return {
+      completions: data.completions({ q, completion_fields, rows, ...rest }),
+    };
   }
 
   _createAnswer(data, mode, payload, options = {}) {

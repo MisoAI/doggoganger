@@ -75,6 +75,10 @@ class MisoData {
     return this._completions._completions(options);
   }
 
+  simpleCompletions(options) {
+    return this._completions._simpleCompletions(options);
+  }
+
   // Facets
   facets(options) {
     return this._facets._facets(options);

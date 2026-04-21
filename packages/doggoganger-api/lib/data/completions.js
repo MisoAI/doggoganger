@@ -14,6 +14,10 @@ export class Completions {
     return result;
   }
 
+  _simpleCompletions({ q, rows } = {}) {
+    return this._completionsForField('query_suggestion', q, 0, rows).map(v => v.text);
+  }
+
   _completionsForField(field, q, index, rows) {
     const completions = [];
     for (let i = 0; i < rows; i++) {

@@ -55,5 +55,11 @@ export default function(api) {
 
   router.post('/related_questions', handler((p, o) => api.ask.related_questions(p, o), 'query'));
 
+  router.post('/query_suggestion', handler((p, o) => api.ask.query_suggestion(p, o), 'query'));
+
+  router.post('/autocomplete', handler((p, o) => api.ask.autocomplete(p, o), 'query'));
+
+  router.post('/search_autocomplete', handler((p, o) => api.ask.search_autocomplete(p, o), 'query'));
+
   return router;
 }
