@@ -23,7 +23,7 @@ export function handler(fn, response) {
     } catch (error) {
       ctx.status = error.status || 500;
       ctx.body = {
-        version,
+        doggoganger_version: version,
         errors: true,
         message: error.message || '',
       };
