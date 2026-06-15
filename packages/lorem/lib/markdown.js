@@ -28,6 +28,14 @@ export class Markdown {
     this._prng = lorem._prng;
     this._words = lorem.words;
     this._code = lorem.code;
+    this._INLINE_FEATURES = {
+      'code-span': () => ['`', '`'],
+      'emphasis-1': () => this._multiply(this._emphasisAdfix(1), 2),
+      'emphasis-2': () => this._multiply(this._emphasisAdfix(2), 2),
+      'emphasis-3': () => this._multiply(this._emphasisAdfix(3), 2),
+      'strikethrough': () => ['~', '~'],
+      'link': ({ url = 'https://miso.ai' } = {}) => [`[`, `](${url})`],
+    };
   }
 
   // TODO: wild mode that generates edge cases
@@ -220,15 +228,6 @@ export class Markdown {
   // TODO: ref link
   // TODO: autolink
   // TODO: hard line break
-
-  _INLINE_FEATURES = {
-    'code-span': () => ['`', '`'],
-    'emphasis-1': () => this._multiply(this._emphasisAdfix(1), 2),
-    'emphasis-2': () => this._multiply(this._emphasisAdfix(2), 2),
-    'emphasis-3': () => this._multiply(this._emphasisAdfix(3), 2),
-    'strikethrough': () => ['~', '~'],
-    'link': ({ url = 'https://miso.ai' } = {}) => [`[`, `](${url})`],
-  };
 
   _emphasisAdfix(level = [1, 3]) {
     const lvl = typeof level === 'number' ? level : this._prng.randomInt(...level);
