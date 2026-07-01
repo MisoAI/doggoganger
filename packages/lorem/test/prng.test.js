@@ -83,4 +83,18 @@ test('different seeds produce different output', () => {
   assert.not.equal(output1, output2);
 });
 
+test('string seed produces deterministic output', () => {
+  const output1 = generate('question-abc');
+  const output2 = generate('question-abc');
+
+  assert.equal(output1, output2);
+});
+
+test('different string seeds produce different output', () => {
+  const output1 = generate('question-abc');
+  const output2 = generate('question-xyz');
+
+  assert.not.equal(output1, output2);
+});
+
 test.run();

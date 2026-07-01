@@ -34,6 +34,11 @@ class MisoData {
     return this._lorem;
   }
 
+  // Create an independent data source with its own PRNG seeded from `seed`.
+  fork(seed) {
+    return misoData({ seed });
+  }
+
   // Articles
   articles({ rows, ...options } = {}) {
     const results = [];

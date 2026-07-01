@@ -68,8 +68,21 @@ function toXoshiro128State(seed = 1) {
   if (Array.isArray(seed) && seed.length === 4) {
     return [...seed];
   }
+  if (typeof seed === 'string') {
+    seed = hashString(seed);
+  }
   const gen = splitMix32(seed);
   return [gen(), gen(), gen(), gen()];
+}
+
+// FNV-1a 32-bit hash, used to derive a numeric seed from a string.
+function hashString(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
 }
 
 class Xoshiro128 {
