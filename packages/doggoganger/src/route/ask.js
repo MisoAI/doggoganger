@@ -45,14 +45,6 @@ export default function(api) {
     ctx.body = JSON.stringify({ data, version });
   });
 
-  router.get('/search/:id/answer', async (ctx) => {
-    const { id } = ctx.params;
-    const data = api.ask.answer(id);
-    const time = rollLatency(DEFAULT_LATENCY_OPTIONS.min, DEFAULT_LATENCY_OPTIONS.max);
-    await delay(time);
-    ctx.body = JSON.stringify({ data, version });
-  });
-
   router.post('/related_questions', handler((p, o) => api.ask.related_questions(p, o), 'query'));
 
   router.post('/query_suggestion', handler((p, o) => api.ask.query_suggestion(p, o), 'query'));
