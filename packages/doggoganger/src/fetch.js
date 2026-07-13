@@ -11,7 +11,9 @@ export default async function fetch(api, url, { method = 'GET', body, seed } = {
     segments.splice(0, 1);
   }
   const group = segments[0];
+  let apiNode = api[group];
   let name = segments[1];
+  let args = [body];
   let type = 'query';
 
   if (group === 'interactions' && segments.length === 1) {
@@ -19,19 +21,47 @@ export default async function fetch(api, url, { method = 'GET', body, seed } = {
     type = 'data';
   } else if (group === 'ask' && segments.length === 4 && segments[1] === 'questions' && segments[3] === 'answer') {
     name = 'answer';
-    body = segments[2];
+    args = [segments[2]];
+  } else if (group === 'ask' && segments[1] === 'user_history') {
+    ({ apiNode, name, args } = resolveUserHistory(api, method, segments, body));
   }
 
-  const apiNode = api[group];
-  if (!apiNode[name]) {
-    throw new Error(`Unknown path: ${url.pathname}`);
+  if (!apiNode || typeof apiNode[name] !== 'function') {
+    throw new Error(`Unknown path: ${method} ${url.pathname}`);
   }
 
   const response = responseFunction(type);
-  const result = await apiNode[name](body, { seed });
+  const result = await apiNode[name](...args, { seed });
   const resBody = response(result);
 
   return new Response(JSON.stringify(resBody), {
     status: 200,
   });
+}
+
+// Resolves /ask/user_history/threads[/...] paths to a userHistory method.
+function resolveUserHistory(api, method, segments, body) {
+  const apiNode = api.ask.userHistory;
+  if (segments[2] !== 'threads') {
+    return { apiNode, name: undefined, args: [] };
+  }
+  const sub = segments[3];
+  switch (sub) {
+    case undefined:
+      return { apiNode, name: 'threads', args: [] };
+    case '_delete':
+      return { apiNode, name: 'deleteThreads', args: [body] };
+    case '_delete_all':
+      return { apiNode, name: 'deleteAllThreads', args: [] };
+  }
+  switch (method) {
+    case 'GET':
+      return { apiNode, name: 'getThread', args: [sub] };
+    case 'PUT':
+      return { apiNode, name: 'updateThread', args: [sub, body] };
+    case 'DELETE':
+      return { apiNode, name: 'deleteThread', args: [sub] };
+    default:
+      return { apiNode, name: undefined, args: [] };
+  }
 }

@@ -53,5 +53,17 @@ export default function(api) {
 
   router.post('/search_autocomplete', handler((p, o) => api.ask.search_autocomplete(p, o), 'query'));
 
+  router.get('/user_history/threads', handler(() => api.ask.userHistory.threads(), 'query'));
+
+  router.post('/user_history/threads/_delete', handler(p => api.ask.userHistory.deleteThreads(p), 'query'));
+
+  router.post('/user_history/threads/_delete_all', handler(() => api.ask.userHistory.deleteAllThreads(), 'query'));
+
+  router.get('/user_history/threads/:id', handler((p, o, ctx) => api.ask.userHistory.getThread(ctx.params.id), 'query'));
+
+  router.put('/user_history/threads/:id', handler((p, o, ctx) => api.ask.userHistory.updateThread(ctx.params.id, p), 'query'));
+
+  router.delete('/user_history/threads/:id', handler((p, o, ctx) => api.ask.userHistory.deleteThread(ctx.params.id), 'query'));
+
   return router;
 }

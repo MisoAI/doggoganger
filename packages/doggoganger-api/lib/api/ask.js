@@ -1,5 +1,6 @@
 import { misoData } from '../data/index.js';
 import { trimObj } from '../utils.js';
+import { UserHistory } from './history.js';
 
 const CPS = 100;
 const ITEMS_LOADING_TIME = 3; // seconds
@@ -32,6 +33,7 @@ export class Ask {
   constructor(options = {}) {
     this._options = options;
     this._answers = new Map();
+    this.userHistory = new UserHistory(this);
   }
 
   questions(payload, { seed, ...options } = {}) {
@@ -75,6 +77,7 @@ export class Ask {
   _createAnswer(data, mode, payload, options = {}) {
     const answer = new Answer(data, mode, payload, { ...this._options, ...options });
     this._answers.set(answer.question_id, answer);
+    this.userHistory._track(data, answer._data);
     return answer;
   }
 

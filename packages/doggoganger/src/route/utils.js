@@ -18,7 +18,7 @@ export function handler(fn, response) {
     try {
       const payload = parseBodyIfNecessary(ctx.request.body);
       const options = getOptionsFromCtx(ctx);
-      const result = await fn(payload, options);
+      const result = await fn(payload, options, ctx);
       ctx.body = response(result);
     } catch (error) {
       ctx.status = error.status || 500;
