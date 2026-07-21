@@ -171,6 +171,105 @@ test('deleteAllThreads clears everything', () => {
   assert.is(ask.userHistory.threads().threads.length, 0);
 });
 
+test('generateThreads creates the requested number of threads', () => {
+  const ask = makeAsk();
+  ask.userHistory.generateThreads({ rows: 3 }, { seed: SEED });
+  assert.is(ask.userHistory.threads().threads.length, 3);
+});
+
+test('generateThreads defaults to 3-6 threads', () => {
+  const ask = makeAsk();
+  ask.userHistory.generateThreads({}, { seed: SEED });
+  const { length } = ask.userHistory.threads().threads;
+  assert.ok(length >= 3 && length <= 6, `expected 3-6 threads, got ${length}`);
+});
+
+test('generateThreads accepts rows as a [min, max] range', () => {
+  const ask = makeAsk();
+  ask.userHistory.generateThreads({ rows: [2, 4] }, { seed: SEED });
+  const { length } = ask.userHistory.threads().threads;
+  assert.ok(length >= 2 && length <= 4, `expected 2-4 threads, got ${length}`);
+});
+
+test('generateThreads honors a numeric questionRows for every thread', () => {
+  const ask = makeAsk();
+  ask.userHistory.generateThreads({ rows: 3, questionRows: 2 }, { seed: SEED });
+
+  for (const { thread_id } of ask.userHistory.threads().threads) {
+    assert.is(ask.userHistory.getThread(thread_id).questions_ids.length, 2);
+  }
+});
+
+test('generateThreads accepts questionRows as a [min, max] range', () => {
+  const ask = makeAsk();
+  ask.userHistory.generateThreads({ rows: 3, questionRows: [2, 5] }, { seed: SEED });
+
+  for (const { thread_id } of ask.userHistory.threads().threads) {
+    const { length } = ask.userHistory.getThread(thread_id).questions_ids;
+    assert.ok(length >= 2 && length <= 5, `expected 2-5 questions, got ${length}`);
+  }
+});
+
+test('generateThreads gives every thread a generated title', () => {
+  const ask = makeAsk();
+  ask.userHistory.generateThreads({ rows: 3 }, { seed: SEED });
+
+  for (const { title } of ask.userHistory.threads().threads) {
+    assert.type(title, 'string');
+    assert.ok(title.length > 0);
+  }
+});
+
+test('generateThreads is deterministic with the same seed', () => {
+  const ask1 = makeAsk();
+  ask1.userHistory.generateThreads({ rows: 3 }, { seed: SEED });
+
+  const ask2 = makeAsk();
+  ask2.userHistory.generateThreads({ rows: 3 }, { seed: SEED });
+
+  assert.equal(ask1.userHistory.threads(), ask2.userHistory.threads());
+});
+
+test('generateThreads differs across seeds', () => {
+  const ask1 = makeAsk();
+  ask1.userHistory.generateThreads({ rows: 3 }, { seed: SEED_A });
+
+  const ask2 = makeAsk();
+  ask2.userHistory.generateThreads({ rows: 3 }, { seed: SEED_B });
+
+  const ids1 = ask1.userHistory.threads().threads.map(t => t.thread_id);
+  const ids2 = ask2.userHistory.threads().threads.map(t => t.thread_id);
+  assert.not.equal(ids1, ids2);
+});
+
+test('generateThreads chains questions into a single thread each', () => {
+  const ask = makeAsk();
+  ask.userHistory.generateThreads({ rows: 3 }, { seed: SEED });
+
+  for (const { thread_id } of ask.userHistory.threads().threads) {
+    const { questions_ids } = ask.userHistory.getThread(thread_id);
+    assert.ok(questions_ids.length >= 1 && questions_ids.length <= 10);
+  }
+});
+
+test('generateThreads registers answerable questions', () => {
+  const ask = makeAsk();
+  ask.userHistory.generateThreads({ rows: 2 }, { seed: SEED });
+
+  for (const { thread_id } of ask.userHistory.threads().threads) {
+    for (const question_id of ask.userHistory.getThread(thread_id).questions_ids) {
+      const answer = ask.answer(question_id);
+      assert.is(answer.question_id, question_id);
+    }
+  }
+});
+
+test('generateThreads works without a seed', () => {
+  const ask = makeAsk();
+  ask.userHistory.generateThreads({ rows: 2 });
+  assert.is(ask.userHistory.threads().threads.length, 2);
+});
+
 test('getThread throws 404 for unknown thread_id', () => {
   const ask = makeAsk();
   try {

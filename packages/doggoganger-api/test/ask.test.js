@@ -72,6 +72,47 @@ test('answer result is deterministic with same seed', () => {
   }
 });
 
+test('answers() returns one answer per question_id, in order', () => {
+  const ask = makeAsk();
+  const { question_id: qid1 } = ask.questions(PAYLOAD, { seed: 1 });
+  const { question_id: qid2 } = ask.questions(PAYLOAD, { seed: 2 });
+
+  const results = ask.answers({ question_ids: [qid1, qid2] });
+  assert.is(results.length, 2);
+  assert.equal(results.map(r => r.question_id), [qid1, qid2]);
+});
+
+test('answers() entries match individual answer() polls', () => {
+  const ask1 = makeAsk();
+  const { question_id: qid1 } = ask1.questions(PAYLOAD, { seed: SEED });
+
+  const ask2 = makeAsk();
+  const { question_id: qid2 } = ask2.questions(PAYLOAD, { seed: SEED });
+
+  // Each answers() call advances the poll of every listed question, just like answer()
+  for (let i = 0; i < 5; i++) {
+    const [batched] = ask1.answers({ question_ids: [qid1] });
+    const single = ask2.answer(qid2);
+    assert.equal(batched, single);
+  }
+});
+
+test('answers() returns an empty array for empty question_ids', () => {
+  const ask = makeAsk();
+  assert.equal(ask.answers({ question_ids: [] }), []);
+});
+
+test('answers() throws 404 when any question_id is unknown', () => {
+  const ask = makeAsk();
+  const { question_id } = ask.questions(PAYLOAD, { seed: SEED });
+  try {
+    ask.answers({ question_ids: [question_id, 'nonexistent-id'] });
+    assert.unreachable('should have thrown');
+  } catch (err) {
+    assert.is(err.status, 404);
+  }
+});
+
 test('answer throws 404 for unknown question_id', () => {
   const ask = makeAsk();
   try {

@@ -32,6 +32,8 @@ export class Answers {
     const data = this._data.fork(question_id);
     const { fields, prng, utils } = data._lorem;
 
+    question = question || data.questions({ rows: 1 })[0];
+
     const datetime = formatDatetime(timestamp);
 
     const sampling = answerSampling !== undefined ? Math.max(0, Math.min(1, answerSampling)) : undefined;

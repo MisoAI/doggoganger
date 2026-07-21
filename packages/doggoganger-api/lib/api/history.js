@@ -1,3 +1,6 @@
+import { misoData } from '../data/index.js';
+import { MODE_QUESTION } from './ask.js';
+
 export class UserHistory {
 
   constructor(ask) {
@@ -40,6 +43,25 @@ export class UserHistory {
   deleteAllThreads() {
     this._threads.clear();
     this._threadByQuestion.clear();
+  }
+
+  generateThreads({ rows = [3, 6], ...options } = {}, { seed } = {}) {
+    const data = misoData({ seed });
+    const prng = data._lorem.prng;
+    rows = typeof rows === 'number' ? rows : prng.randomInt(...rows);
+    for (let i = 0; i < rows; i++) {
+      this._generateThread(data, options);
+    }
+  }
+
+  _generateThread(data, { questionRows = [1, 10], ...options } = {}) {
+    const prng = data._lorem.prng;
+    questionRows = typeof questionRows === 'number' ? questionRows : prng.randomInt(...questionRows);
+
+    let parent_question_id;
+    for (let i = 0; i < questionRows; i++) {
+      ({ question_id: parent_question_id } = this._ask._createAnswer(data, MODE_QUESTION, { parent_question_id }, options));
+    }
   }
 
   _getThread(thread_id) {

@@ -25,7 +25,7 @@ const STAGES = [
   },
 ];
 
-const MODE_QUESTION = 0;
+export const MODE_QUESTION = 0;
 const MODE_SEARCH = 1;
 
 export class Ask {
@@ -38,9 +38,12 @@ export class Ask {
 
   questions(payload, { seed, ...options } = {}) {
     const data = misoData({ seed });
-    const answer = this._createAnswer(data, MODE_QUESTION, payload, options);
-    const { question_id } = answer;
+    const { question_id } = this._createAnswer(data, MODE_QUESTION, payload, options);
     return { question_id };
+  }
+
+  answers({ question_ids }) {
+    return question_ids.map(question_id => this.answer(question_id));
   }
 
   search(payload, { seed, ...options } = {}) {
