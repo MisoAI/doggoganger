@@ -39,9 +39,14 @@ export default async function fetch(api, url, { method = 'GET', body, seed } = {
   });
 }
 
-// Resolves /ask/user_history/threads[/...] paths to a userHistory method.
+// Resolves /ask/user_history/... paths to a userHistory method.
 function resolveUserHistory(api, method, segments, body) {
   const apiNode = api.ask.userHistory;
+  if (segments[2] === 'notifications') {
+    return segments[3] === 'dismiss' ?
+      { apiNode, name: 'dismissNotifications', args: [] } :
+      { apiNode, name: 'notifications', args: [] };
+  }
   if (segments[2] !== 'threads') {
     return { apiNode, name: undefined, args: [] };
   }
@@ -53,6 +58,9 @@ function resolveUserHistory(api, method, segments, body) {
       return { apiNode, name: 'deleteThreads', args: [body] };
     case '_delete_all':
       return { apiNode, name: 'deleteAllThreads', args: [] };
+  }
+  if (segments[4] === 'read') {
+    return { apiNode, name: 'markThreadAsRead', args: [sub] };
   }
   switch (method) {
     case 'GET':

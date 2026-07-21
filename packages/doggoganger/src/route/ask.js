@@ -65,5 +65,11 @@ export default function(api) {
 
   router.delete('/user_history/threads/:id', handler((p, o, ctx) => api.ask.userHistory.deleteThread(ctx.params.id), 'query'));
 
+  router.post('/user_history/threads/:id/read', handler((p, o, ctx) => api.ask.userHistory.markThreadAsRead(ctx.params.id), 'query'));
+
+  router.get('/user_history/notifications', handler(() => api.ask.userHistory.notifications(), 'query'));
+
+  router.post('/user_history/notifications/dismiss', handler(() => api.ask.userHistory.dismissNotifications(), 'query'));
+
   return router;
 }

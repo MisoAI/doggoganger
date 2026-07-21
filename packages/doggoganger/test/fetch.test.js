@@ -155,4 +155,44 @@ test('POST /ask/user_history/threads/_delete_all clears everything', async () =>
   assert.is(after.data.threads.length, 0);
 });
 
+test('POST /ask/user_history/threads/:id/read marks the thread read', async () => {
+  const api = buildApi({ detemporize: true });
+  api.ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+  const list = await (await fetch(api, `${BASE_URL}/ask/user_history/threads`)).json();
+  const { thread_id } = list.data.threads.find(t => t.unread);
+
+  const res = await fetch(api, `${BASE_URL}/ask/user_history/threads/${thread_id}/read`, { method: 'POST' });
+  assert.is(res.status, 200);
+  const { data } = await res.json();
+  assert.is(data.unread, false);
+
+  const after = await (await fetch(api, `${BASE_URL}/ask/user_history/threads/${thread_id}`)).json();
+  assert.is(after.data.unread, false);
+});
+
+test('GET /ask/user_history/notifications reports the unread badge state', async () => {
+  const api = buildApi({ detemporize: true });
+  api.ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+
+  const res = await fetch(api, `${BASE_URL}/ask/user_history/notifications`);
+  assert.is(res.status, 200);
+
+  const { data } = await res.json();
+  assert.is(data.has_unread, true);
+  assert.ok(data.unread_count > 0);
+  assert.type(data.last_update_at, 'string');
+});
+
+test('POST /ask/user_history/notifications/dismiss hides the badge', async () => {
+  const api = buildApi({ detemporize: true });
+  api.ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+
+  const res = await fetch(api, `${BASE_URL}/ask/user_history/notifications/dismiss`, { method: 'POST' });
+  assert.is(res.status, 200);
+
+  const { data } = await (await fetch(api, `${BASE_URL}/ask/user_history/notifications`)).json();
+  assert.is(data.has_unread, false);
+  assert.ok(data.unread_count > 0);
+});
+
 test.run();

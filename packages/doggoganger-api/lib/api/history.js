@@ -7,6 +7,7 @@ export class UserHistory {
     this._ask = ask;
     this._threads = new Map();          // thread_id -> thread
     this._threadByQuestion = new Map(); // question_id -> thread
+    this._badge_dismissed_at = undefined;     // updated_at of the latest activity seen at dismissal
   }
 
   threads() {
@@ -45,6 +46,37 @@ export class UserHistory {
     this._threadByQuestion.clear();
   }
 
+  markThreadAsRead(thread_id) {
+    const thread = this._getThread(thread_id);
+    thread.unread = false;
+    return { ...thread };
+  }
+
+  notifications() {
+    let unread_count = 0;
+    let last_update_at;
+    for (const { unread, updated_at } of this._threads.values()) {
+      if (!unread) {
+        continue;
+      }
+      unread_count++;
+      if (last_update_at === undefined || updated_at > last_update_at) {
+        last_update_at = updated_at;
+      }
+    }
+    const has_unread = unread_count > 0 &&
+      (this._badge_dismissed_at === undefined || last_update_at > this._badge_dismissed_at);
+    return { has_unread, unread_count, last_update_at };
+  }
+
+  dismissNotifications() {
+    for (const { updated_at } of this._threads.values()) {
+      if (this._badge_dismissed_at === undefined || updated_at > this._badge_dismissed_at) {
+        this._badge_dismissed_at = updated_at;
+      }
+    }
+  }
+
   generateThreads({ rows = [3, 6], ...options } = {}, { seed } = {}) {
     const data = misoData({ seed });
     const prng = data._lorem.prng;
@@ -62,6 +94,9 @@ export class UserHistory {
     for (let i = 0; i < questionRows; i++) {
       ({ question_id: parent_question_id } = this._ask._createAnswer(data, MODE_QUESTION, { parent_question_id }, options));
     }
+
+    // Simulate threads with server-side activity the user has not seen yet
+    this._threadByQuestion.get(parent_question_id).unread = prng.randomBool();
   }
 
   _getThread(thread_id) {
@@ -97,6 +132,7 @@ export class UserHistory {
       thread_id: data._lorem.prng.uuid(),
       title: question,
       updated_at: datetime,
+      unread: false,
       questions_ids: [question_id],
     };
     this._threads.set(thread.thread_id, thread);
