@@ -1,5 +1,6 @@
 import { misoData } from '../data/index.js';
 import { trimObj } from '../utils.js';
+import { MODE_QUESTION, MODE_SEARCH } from './constants.js';
 import { UserHistory } from './history.js';
 
 const CPS = 100;
@@ -24,9 +25,6 @@ const STAGES = [
     text: `Generating answer... `,
   },
 ];
-
-export const MODE_QUESTION = 0;
-const MODE_SEARCH = 1;
 
 export class Ask {
 

@@ -1,5 +1,5 @@
 import { misoData } from '../data/index.js';
-import { MODE_QUESTION } from './ask.js';
+import { MODE_QUESTION } from './constants.js';
 
 export class UserHistory {
 
