@@ -270,6 +270,52 @@ test('generateThreads works without a seed', () => {
   assert.is(ask.userHistory.threads().threads.length, 2);
 });
 
+// Poll a question to completion and return its final answer text
+function finishedAnswer(ask, question_id) {
+  let result;
+  for (let i = 0; i < 100; i++) {
+    result = ask.answer(question_id);
+    if (result.finished) break;
+  }
+  return result.answer;
+}
+
+function generatedAnswers(ask) {
+  const answers = [];
+  for (const { thread_id } of ask.userHistory.threads().threads) {
+    for (const question_id of ask.userHistory.getThread(thread_id).questions_ids) {
+      answers.push(finishedAnswer(ask, question_id));
+    }
+  }
+  return answers;
+}
+
+// Linked citations render as [[3]](url), plain ones as [3]
+const LINKED_CITATION = /\[\[\d+\]\]\(/;
+
+test('generateThreads produces answers with linked citations by default', () => {
+  const ask = makeAsk();
+  ask.userHistory.generateThreads({ rows: 2 }, { seed: SEED });
+
+  const answers = generatedAnswers(ask);
+  assert.ok(answers.length > 0);
+  for (const answer of answers) {
+    assert.ok(LINKED_CITATION.test(answer));
+  }
+});
+
+test('generateThreads routes payload fields into generated questions', () => {
+  const ask = makeAsk();
+  ask.userHistory.generateThreads({ rows: 2, payload: { cite_link: false } }, { seed: SEED });
+
+  const answers = generatedAnswers(ask);
+  assert.ok(answers.length > 0);
+  for (const answer of answers) {
+    assert.not.ok(LINKED_CITATION.test(answer));
+    assert.ok(/\[\d+\]/.test(answer));
+  }
+});
+
 test('threads created by asking questions start read', () => {
   const ask = makeAsk();
   ask.questions({ question: 'What is Miso?' }, { seed: SEED });

@@ -86,13 +86,13 @@ export class UserHistory {
     }
   }
 
-  _generateThread(data, { questionRows = [1, 10], ...options } = {}) {
+  _generateThread(data, { questionRows = [1, 10], payload = {}, ...options } = {}) {
     const prng = data._lorem.prng;
     questionRows = typeof questionRows === 'number' ? questionRows : prng.randomInt(...questionRows);
 
     let parent_question_id;
     for (let i = 0; i < questionRows; i++) {
-      ({ question_id: parent_question_id } = this._ask._createAnswer(data, MODE_QUESTION, { parent_question_id }, options));
+      ({ question_id: parent_question_id } = this._ask._createAnswer(data, MODE_QUESTION, { cite_link: true, ...payload, parent_question_id }, options));
     }
 
     // Simulate threads with server-side activity the user has not seen yet
