@@ -92,7 +92,7 @@ export class UserHistory {
 
     let parent_question_id;
     for (let i = 0; i < questionRows; i++) {
-      ({ question_id: parent_question_id } = this._ask._createAnswer(data, MODE_QUESTION, { cite_link: true, ...payload, parent_question_id }, options));
+      ({ question_id: parent_question_id } = this._ask._createAnswer(data, MODE_QUESTION, { cite_link: true, ...payload, parent_question_id }, { finished: true, ...options }));
     }
 
     // Simulate threads with server-side activity the user has not seen yet

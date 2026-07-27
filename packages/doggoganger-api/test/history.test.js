@@ -316,6 +316,20 @@ test('generateThreads routes payload fields into generated questions', () => {
   }
 });
 
+test('generateThreads produces already-finished answers', () => {
+  const ask = makeAsk();
+  ask.userHistory.generateThreads({ rows: 2 }, { seed: SEED });
+
+  for (const { thread_id } of ask.userHistory.threads().threads) {
+    for (const question_id of ask.userHistory.getThread(thread_id).questions_ids) {
+      // A single poll — no advancing loop — must already be complete
+      const result = ask.answer(question_id);
+      assert.is(result.finished, true);
+      assert.is(result.answer_stage, 'result');
+    }
+  }
+});
+
 test('threads created by asking questions start read', () => {
   const ask = makeAsk();
   ask.questions({ question: 'What is Miso?' }, { seed: SEED });

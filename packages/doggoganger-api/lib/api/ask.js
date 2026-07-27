@@ -7,6 +7,9 @@ const CPS = 100;
 const ITEMS_LOADING_TIME = 3; // seconds
 const QUESTION_REVISED_TIME = 3; // seconds
 const MOCK_POLLING_INTERVAL = 1; // seconds
+// A starting poll index far beyond any answer's completion, so an Answer
+// created with { finished: true } reports as finished on its very first poll.
+const FINISHED_INDEX = 1e6;
 
 const STAGES = [
   {
@@ -109,13 +112,15 @@ export class Ask {
 
 class Answer {
 
-  constructor(data, mode, payload, { answerFormat, answerSampling, answerLanguages, ...options } = {}) {
+  constructor(data, mode, payload, { answerFormat, answerSampling, answerLanguages, finished = false, ...options } = {}) {
     this._mode = mode;
     this._options = Object.freeze(options);
     this._data = data.answer(payload, { answerFormat, answerSampling, answerLanguages });
 
-    this._timestamp = Date.now();
-    this._index = 1;
+    // A finished answer starts far past completion in both timing modes: the
+    // detemporized poll index and the wall-clock timestamp are pushed ahead.
+    this._timestamp = Date.now() - (finished ? FINISHED_INDEX * 1000 : 0);
+    this._index = finished ? FINISHED_INDEX : 1;
   }
 
   get question_id() {
