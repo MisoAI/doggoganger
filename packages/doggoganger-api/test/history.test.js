@@ -27,7 +27,7 @@ test('threads() entries omit questions_ids', () => {
   ask.questions({ question: 'What is Miso?' }, { seed: SEED });
 
   const [entry] = ask.userHistory.threads().threads;
-  assert.equal(Object.keys(entry).sort(), ['thread_id', 'title', 'updated_at', 'unread'].sort());
+  assert.equal(Object.keys(entry).sort(), ['thread_id', 'title', 'time', 'subscribed', 'has_new'].sort());
   assert.is(entry.questions_ids, undefined);
 });
 
@@ -71,9 +71,9 @@ test('each created answer is dated a minute after the previous one', () => {
   assert.is(ask.answer(first).datetime, '2026-01-01T00:00:00.000');
   assert.is(ask.answer(second).datetime, '2026-01-01T00:01:00.000');
 
-  // Threads carry the bumped datetime through as updated_at
+  // Threads carry the bumped datetime through as time
   const { threads } = ask.userHistory.threads();
-  assert.equal(threads.map(t => t.updated_at), ['2026-01-01T00:00:00.000', '2026-01-01T00:01:00.000']);
+  assert.equal(threads.map(t => t.time), ['2026-01-01T00:00:00.000', '2026-01-01T00:01:00.000']);
 });
 
 test('an explicit payload timestamp wins over the running clock', () => {
@@ -120,7 +120,7 @@ test('getThread returns the full thread object', () => {
   assert.is(thread.thread_id, thread_id);
   assert.is(thread.title, 'What is Miso?');
   assert.equal(thread.questions_ids, [question_id]);
-  assert.ok(thread.updated_at);
+  assert.ok(thread.time);
 });
 
 test('getThread returns a shallow copy', () => {
@@ -383,7 +383,7 @@ test('threads created by asking questions start read', () => {
   ask.questions({ question: 'What is Miso?' }, { seed: SEED });
 
   const [entry] = ask.userHistory.threads().threads;
-  assert.is(entry.unread, false);
+  assert.is(entry.has_new, false);
 });
 
 test('generateThreads marks some threads unread', () => {
@@ -391,20 +391,20 @@ test('generateThreads marks some threads unread', () => {
   ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
 
   const { threads } = ask.userHistory.threads();
-  assert.ok(threads.some(t => t.unread === true));
-  assert.ok(threads.some(t => t.unread === false));
+  assert.ok(threads.some(t => t.has_new === true));
+  assert.ok(threads.some(t => t.has_new === false));
 });
 
 test('markThreadAsRead clears the unread flag', () => {
   const ask = makeAsk();
   ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
-  const { thread_id } = ask.userHistory.threads().threads.find(t => t.unread);
+  const { thread_id } = ask.userHistory.threads().threads.find(t => t.has_new);
 
   const updated = ask.userHistory.markThreadAsRead(thread_id);
-  assert.is(updated.unread, false);
+  assert.is(updated.has_new, false);
 
   // Persisted for subsequent reads
-  assert.is(ask.userHistory.getThread(thread_id).unread, false);
+  assert.is(ask.userHistory.getThread(thread_id).has_new, false);
 });
 
 test('markThreadAsRead throws 404 for unknown thread_id', () => {
@@ -421,12 +421,12 @@ test('notifications reports the unread badge state', () => {
   const ask = makeAsk();
   ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
 
-  const unread = ask.userHistory.threads().threads.filter(t => t.unread);
+  const unread = ask.userHistory.threads().threads.filter(t => t.has_new);
   const { has_unread, unread_count, last_update_at } = ask.userHistory.notifications();
   assert.is(has_unread, true);
   assert.is(unread_count, unread.length);
   assert.ok(unread_count > 0);
-  assert.ok(unread.some(t => t.updated_at === last_update_at));
+  assert.ok(unread.some(t => t.time === last_update_at));
 });
 
 test('notifications is empty without unread threads', () => {
@@ -444,8 +444,8 @@ test('markThreadAsRead decrements unread_count', () => {
   ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
   const before = ask.userHistory.notifications();
 
-  for (const { thread_id, unread } of ask.userHistory.threads().threads) {
-    if (unread) {
+  for (const { thread_id, has_new } of ask.userHistory.threads().threads) {
+    if (has_new) {
       ask.userHistory.markThreadAsRead(thread_id);
       break;
     }
@@ -458,8 +458,8 @@ test('marking all threads read clears has_unread', () => {
   const ask = makeAsk();
   ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
 
-  for (const { thread_id, unread } of ask.userHistory.threads().threads) {
-    if (unread) {
+  for (const { thread_id, has_new } of ask.userHistory.threads().threads) {
+    if (has_new) {
       ask.userHistory.markThreadAsRead(thread_id);
     }
   }
@@ -479,7 +479,7 @@ test('dismissNotifications hides the badge but keeps threads unread', () => {
   const after = ask.userHistory.notifications();
   assert.is(after.has_unread, false);
   assert.is(after.unread_count, before.unread_count);
-  assert.ok(ask.userHistory.threads().threads.some(t => t.unread));
+  assert.ok(ask.userHistory.threads().threads.some(t => t.has_new));
 });
 
 test('activity newer than the dismissal raises the badge again', () => {
@@ -489,8 +489,8 @@ test('activity newer than the dismissal raises the badge again', () => {
   assert.is(ask.userHistory.notifications().has_unread, false);
 
   // Simulate later server-side activity on an unread thread
-  const entry = ask.userHistory.threads().threads.find(t => t.unread);
-  ask.userHistory._getThread(entry.thread_id).updated_at = '2026-02-01T00:00:00.000';
+  const entry = ask.userHistory.threads().threads.find(t => t.has_new);
+  ask.userHistory._getThread(entry.thread_id).time = '2026-02-01T00:00:00.000';
 
   assert.is(ask.userHistory.notifications().has_unread, true);
 });

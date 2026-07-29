@@ -7,7 +7,7 @@ export class UserHistory {
     this._ask = ask;
     this._threads = new Map();          // thread_id -> thread
     this._threadByQuestion = new Map(); // question_id -> thread
-    this._badge_dismissed_at = undefined;     // updated_at of the latest activity seen at dismissal
+    this._badge_dismissed_at = undefined;     // time of the latest activity seen at dismissal
   }
 
   threads() {
@@ -48,20 +48,20 @@ export class UserHistory {
 
   markThreadAsRead(thread_id) {
     const thread = this._getThread(thread_id);
-    thread.unread = false;
+    thread.has_new = false;
     return { ...thread };
   }
 
   notifications() {
     let unread_count = 0;
     let last_update_at;
-    for (const { unread, updated_at } of this._threads.values()) {
-      if (!unread) {
+    for (const { has_new, time } of this._threads.values()) {
+      if (!has_new) {
         continue;
       }
       unread_count++;
-      if (last_update_at === undefined || updated_at > last_update_at) {
-        last_update_at = updated_at;
+      if (last_update_at === undefined || time > last_update_at) {
+        last_update_at = time;
       }
     }
     const has_unread = unread_count > 0 &&
@@ -70,9 +70,9 @@ export class UserHistory {
   }
 
   dismissNotifications() {
-    for (const { updated_at } of this._threads.values()) {
-      if (this._badge_dismissed_at === undefined || updated_at > this._badge_dismissed_at) {
-        this._badge_dismissed_at = updated_at;
+    for (const { time } of this._threads.values()) {
+      if (this._badge_dismissed_at === undefined || time > this._badge_dismissed_at) {
+        this._badge_dismissed_at = time;
       }
     }
   }
@@ -96,10 +96,10 @@ export class UserHistory {
     }
 
     // Simulate threads with server-side activity the user has not seen yet
-    const unread = prng.randomBool();
+    const has_new = prng.randomBool();
     const thread = this._threadByQuestion.get(parent_question_id);
     if (thread) {
-      thread.unread = unread;
+      thread.has_new = has_new;
     }
   }
 

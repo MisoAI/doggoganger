@@ -159,15 +159,15 @@ test('POST /ask/user_history/threads/:id/read marks the thread read', async () =
   const api = buildApi({ detemporize: true });
   api.ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
   const list = await (await fetch(api, `${BASE_URL}/ask/user_history/threads`)).json();
-  const { thread_id } = list.data.threads.find(t => t.unread);
+  const { thread_id } = list.data.threads.find(t => t.has_new);
 
   const res = await fetch(api, `${BASE_URL}/ask/user_history/threads/${thread_id}/read`, { method: 'POST' });
   assert.is(res.status, 200);
   const { data } = await res.json();
-  assert.is(data.unread, false);
+  assert.is(data.has_new, false);
 
   const after = await (await fetch(api, `${BASE_URL}/ask/user_history/threads/${thread_id}`)).json();
-  assert.is(after.data.unread, false);
+  assert.is(after.data.has_new, false);
 });
 
 test('GET /ask/user_history/notifications reports the unread badge state', async () => {
