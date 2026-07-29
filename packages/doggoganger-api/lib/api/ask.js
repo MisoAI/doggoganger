@@ -1,5 +1,5 @@
 import { misoData } from '../data/index.js';
-import { trimObj } from '../utils.js';
+import { BASE_TIMESTAMP, trimObj } from '../utils.js';
 import { MODE_QUESTION, MODE_SEARCH } from './constants.js';
 import { UserHistory } from './history.js';
 
@@ -10,6 +10,9 @@ const MOCK_POLLING_INTERVAL = 1; // seconds
 // A starting poll index far beyond any answer's completion, so an Answer
 // created with { finished: true } reports as finished on its very first poll.
 const FINISHED_INDEX = 1e6;
+// Each answer is dated a minute after the previous one, so questions asked in
+// the same session are ordered rather than sharing a single timestamp.
+const DATETIME_INCREMENT = 60 * 1000; // milliseconds
 
 const STAGES = [
   {
@@ -34,6 +37,7 @@ export class Ask {
   constructor(options = {}) {
     this._options = options;
     this._answers = new Map();
+    this._answerCount = 0;
     this.userHistory = new UserHistory(this);
   }
 
@@ -79,10 +83,18 @@ export class Ask {
   }
 
   _createAnswer(data, mode, payload, options = {}) {
-    const answer = new Answer(data, mode, payload, { ...this._options, ...options });
+    // An explicit timestamp in the payload still wins over the running clock
+    const answer = new Answer(data, mode, { timestamp: this._nextTimestamp(), ...payload }, { ...this._options, ...options });
     this._answers.set(answer.question_id, answer);
-    this.userHistory._track(data, answer._data);
+    // An explicit log_user_history = false opts the question out of user history
+    if (payload.log_user_history !== false) {
+      this.userHistory._track(data, answer._data);
+    }
     return answer;
+  }
+
+  _nextTimestamp() {
+    return BASE_TIMESTAMP + this._answerCount++ * DATETIME_INCREMENT;
   }
 
   answer(questionId) {

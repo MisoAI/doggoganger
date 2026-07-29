@@ -96,7 +96,11 @@ export class UserHistory {
     }
 
     // Simulate threads with server-side activity the user has not seen yet
-    this._threadByQuestion.get(parent_question_id).unread = prng.randomBool();
+    const unread = prng.randomBool();
+    const thread = this._threadByQuestion.get(parent_question_id);
+    if (thread) {
+      thread.unread = unread;
+    }
   }
 
   _getThread(thread_id) {
@@ -123,7 +127,7 @@ export class UserHistory {
     const parentThread = parent_question_id && this._threadByQuestion.get(parent_question_id);
     if (parentThread) {
       parentThread.questions_ids.push(question_id);
-      parentThread.updated_at = datetime;
+      parentThread.time = datetime;
       this._threadByQuestion.set(question_id, parentThread);
       return parentThread;
     }
@@ -131,8 +135,9 @@ export class UserHistory {
     const thread = {
       thread_id: data._lorem.prng.uuid(),
       title: question,
-      updated_at: datetime,
-      unread: false,
+      time: datetime,
+      subscribed: true,
+      has_new: false,
       questions_ids: [question_id],
     };
     this._threads.set(thread.thread_id, thread);

@@ -11,6 +11,10 @@ export function trimObj(obj) {
   return trimmed;
 }
 
+// The fixed clock all generated answers are dated from, so mock data stays
+// reproducible across runs.
+export const BASE_TIMESTAMP = Date.UTC(2026, 0, 1);
+
 export function formatDatetime(timestamp) {
   const str = new Date(timestamp).toISOString();
   return str.endsWith('Z') ? str.slice(0, -1) : str;

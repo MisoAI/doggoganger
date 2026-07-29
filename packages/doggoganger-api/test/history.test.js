@@ -63,6 +63,54 @@ test('follow-up of an unknown parent starts a new thread', () => {
   assert.is(threads[0].title, 'Orphan');
 });
 
+test('each created answer is dated a minute after the previous one', () => {
+  const ask = makeAsk();
+  const { question_id: first } = ask.questions({ question: 'First' }, { seed: SEED_A });
+  const { question_id: second } = ask.questions({ question: 'Second' }, { seed: SEED_B });
+
+  assert.is(ask.answer(first).datetime, '2026-01-01T00:00:00.000');
+  assert.is(ask.answer(second).datetime, '2026-01-01T00:01:00.000');
+
+  // Threads carry the bumped datetime through as updated_at
+  const { threads } = ask.userHistory.threads();
+  assert.equal(threads.map(t => t.updated_at), ['2026-01-01T00:00:00.000', '2026-01-01T00:01:00.000']);
+});
+
+test('an explicit payload timestamp wins over the running clock', () => {
+  const ask = makeAsk();
+  ask.questions({ question: 'First' }, { seed: SEED_A });
+  const { question_id } = ask.questions({ question: 'Pinned', timestamp: Date.UTC(2026, 5, 1) }, { seed: SEED_B });
+
+  assert.is(ask.answer(question_id).datetime, '2026-06-01T00:00:00.000');
+});
+
+test('log_user_history = false does not create a thread', () => {
+  const ask = makeAsk();
+  const { question_id } = ask.questions({ question: 'Off the record', log_user_history: false }, { seed: SEED });
+
+  assert.is(ask.userHistory.threads().threads.length, 0);
+  // The question itself is still answerable
+  assert.is(ask.answer(question_id).question_id, question_id);
+});
+
+test('log_user_history = true tracks as usual', () => {
+  const ask = makeAsk();
+  ask.questions({ question: 'On the record', log_user_history: true }, { seed: SEED });
+
+  const { threads } = ask.userHistory.threads();
+  assert.is(threads.length, 1);
+  assert.is(threads[0].title, 'On the record');
+});
+
+test('log_user_history = false follow-up is not appended to its parent thread', () => {
+  const ask = makeAsk();
+  const { question_id: root } = ask.questions({ question: 'Root' }, { seed: SEED_A });
+  ask.questions({ question: 'Follow up', parent_question_id: root, log_user_history: false }, { seed: SEED_B });
+
+  const [{ thread_id }] = ask.userHistory.threads().threads;
+  assert.equal(ask.userHistory.getThread(thread_id).questions_ids, [root]);
+});
+
 test('getThread returns the full thread object', () => {
   const ask = makeAsk();
   const { question_id } = ask.questions({ question: 'What is Miso?' }, { seed: SEED });

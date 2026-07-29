@@ -1,4 +1,4 @@
-import { formatDatetime, sample, excludeHtml } from '../utils.js';
+import { BASE_TIMESTAMP, formatDatetime, sample, excludeHtml } from '../utils.js';
 
 export class Answers {
 
@@ -19,7 +19,7 @@ export class Answers {
     cite_end = ']',
     rows = 10,
     facets,
-    timestamp = Date.UTC(2026, 0, 1),
+    timestamp = BASE_TIMESTAMP,
     _meta: {
       page = 0,
     } = {},
