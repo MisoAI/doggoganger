@@ -122,8 +122,9 @@ export class UserHistory {
 
   // Called by Ask whenever an answer/question is created, to maintain the
   // thread structure. Root questions start a new thread; follow-up questions
-  // are appended to the thread of their parent question.
-  _track(data, { question_id, parent_question_id, question, datetime }) {
+  // are appended to the thread of their parent question. A thread is identified
+  // by the question_id of its root question.
+  _track({ question_id, parent_question_id, question, datetime }) {
     const parentThread = parent_question_id && this._threadByQuestion.get(parent_question_id);
     if (parentThread) {
       parentThread.questions_ids.push(question_id);
@@ -133,7 +134,7 @@ export class UserHistory {
     }
 
     const thread = {
-      thread_id: data._lorem.prng.uuid(),
+      thread_id: question_id,
       title: question,
       updated_at: datetime,
       subscribed: true,

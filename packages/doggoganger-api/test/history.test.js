@@ -19,7 +19,7 @@ test('root question creates a new thread', () => {
   const { threads } = ask.userHistory.threads();
   assert.is(threads.length, 1);
   assert.is(threads[0].title, 'What is Miso?');
-  assert.ok(threads[0].thread_id);
+  assert.is(threads[0].thread_id, question_id);
 });
 
 test('threads() entries omit questions_ids', () => {
@@ -39,6 +39,9 @@ test('follow-up question is appended to its parent thread', () => {
   // Still a single thread
   const { threads } = ask.userHistory.threads();
   assert.is(threads.length, 1);
+
+  // The thread keeps the id of its root question
+  assert.is(threads[0].thread_id, root);
 
   const thread = ask.userHistory.getThread(threads[0].thread_id);
   assert.equal(thread.questions_ids, [root, child]);

@@ -88,7 +88,7 @@ export class Ask {
     this._answers.set(answer.question_id, answer);
     // An explicit log_user_history = false opts the question out of user history
     if (payload.log_user_history !== false) {
-      this.userHistory._track(data, answer._data);
+      this.userHistory._track(answer._data);
     }
     return answer;
   }
