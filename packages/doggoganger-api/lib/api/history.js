@@ -55,13 +55,13 @@ export class UserHistory {
   notifications() {
     let unread_count = 0;
     let last_update_at;
-    for (const { has_new, time } of this._threads.values()) {
+    for (const { has_new, updated_at } of this._threads.values()) {
       if (!has_new) {
         continue;
       }
       unread_count++;
-      if (last_update_at === undefined || time > last_update_at) {
-        last_update_at = time;
+      if (last_update_at === undefined || updated_at > last_update_at) {
+        last_update_at = updated_at;
       }
     }
     const has_unread = unread_count > 0 &&
@@ -70,9 +70,9 @@ export class UserHistory {
   }
 
   dismissNotifications() {
-    for (const { time } of this._threads.values()) {
-      if (this._badge_dismissed_at === undefined || time > this._badge_dismissed_at) {
-        this._badge_dismissed_at = time;
+    for (const { updated_at } of this._threads.values()) {
+      if (this._badge_dismissed_at === undefined || updated_at > this._badge_dismissed_at) {
+        this._badge_dismissed_at = updated_at;
       }
     }
   }
@@ -127,7 +127,7 @@ export class UserHistory {
     const parentThread = parent_question_id && this._threadByQuestion.get(parent_question_id);
     if (parentThread) {
       parentThread.questions_ids.push(question_id);
-      parentThread.time = datetime;
+      parentThread.updated_at = datetime;
       this._threadByQuestion.set(question_id, parentThread);
       return parentThread;
     }
@@ -135,7 +135,7 @@ export class UserHistory {
     const thread = {
       thread_id: data._lorem.prng.uuid(),
       title: question,
-      time: datetime,
+      updated_at: datetime,
       subscribed: true,
       has_new: false,
       questions_ids: [question_id],

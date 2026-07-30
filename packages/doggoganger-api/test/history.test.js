@@ -27,7 +27,7 @@ test('threads() entries omit questions_ids', () => {
   ask.questions({ question: 'What is Miso?' }, { seed: SEED });
 
   const [entry] = ask.userHistory.threads().threads;
-  assert.equal(Object.keys(entry).sort(), ['thread_id', 'title', 'time', 'subscribed', 'has_new'].sort());
+  assert.equal(Object.keys(entry).sort(), ['thread_id', 'title', 'updated_at', 'subscribed', 'has_new'].sort());
   assert.is(entry.questions_ids, undefined);
 });
 
@@ -71,9 +71,9 @@ test('each created answer is dated a minute after the previous one', () => {
   assert.is(ask.answer(first).datetime, '2026-01-01T00:00:00.000');
   assert.is(ask.answer(second).datetime, '2026-01-01T00:01:00.000');
 
-  // Threads carry the bumped datetime through as time
+  // Threads carry the bumped datetime through as updated_at
   const { threads } = ask.userHistory.threads();
-  assert.equal(threads.map(t => t.time), ['2026-01-01T00:00:00.000', '2026-01-01T00:01:00.000']);
+  assert.equal(threads.map(t => t.updated_at), ['2026-01-01T00:00:00.000', '2026-01-01T00:01:00.000']);
 });
 
 test('an explicit payload timestamp wins over the running clock', () => {
@@ -120,7 +120,7 @@ test('getThread returns the full thread object', () => {
   assert.is(thread.thread_id, thread_id);
   assert.is(thread.title, 'What is Miso?');
   assert.equal(thread.questions_ids, [question_id]);
-  assert.ok(thread.time);
+  assert.ok(thread.updated_at);
 });
 
 test('getThread returns a shallow copy', () => {
@@ -426,7 +426,7 @@ test('notifications reports the unread badge state', () => {
   assert.is(has_unread, true);
   assert.is(unread_count, unread.length);
   assert.ok(unread_count > 0);
-  assert.ok(unread.some(t => t.time === last_update_at));
+  assert.ok(unread.some(t => t.updated_at === last_update_at));
 });
 
 test('notifications is empty without unread threads', () => {
@@ -490,7 +490,7 @@ test('activity newer than the dismissal raises the badge again', () => {
 
   // Simulate later server-side activity on an unread thread
   const entry = ask.userHistory.threads().threads.find(t => t.has_new);
-  ask.userHistory._getThread(entry.thread_id).time = '2026-02-01T00:00:00.000';
+  ask.userHistory._getThread(entry.thread_id).updated_at = '2026-02-01T00:00:00.000';
 
   assert.is(ask.userHistory.notifications().has_unread, true);
 });
