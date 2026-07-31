@@ -37,6 +37,8 @@ export default function(api) {
     ctx.body = JSON.stringify({ data, version });
   });
 
+  router.post('/answers', handler(p => api.ask.answers(p), 'query'));
+
   router.post('/search', async (ctx) => {
     const payload = parseBodyIfNecessary(ctx.request.body);
     const data = api.ask.search(payload, getOptionsFromCtx(ctx));
@@ -52,6 +54,33 @@ export default function(api) {
   router.post('/autocomplete', handler((p, o) => api.ask.autocomplete(p, o), 'query'));
 
   router.post('/search_autocomplete', handler((p, o) => api.ask.search_autocomplete(p, o), 'query'));
+
+  // The user history API in production today
+  // @see https://miso-docs.apidocumentation.com/api/genai/user-history
+
+  router.post('/user_history', handler(p => api.ask.userHistoryV0.threads(p), 'query'));
+
+  router.post('/user_history/thread', handler(p => api.ask.userHistoryV0.openThread(p), 'query'));
+
+  router.post('/user_history/thread/rename', handler(p => api.ask.userHistoryV0.renameThread(p), 'query'));
+
+  router.post('/user_history/delete', handler(p => api.ask.userHistoryV0.deleteThreads(p), 'query'));
+
+  router.post('/user_history/delete_all', handler(p => api.ask.userHistoryV0.deleteAllThreads(p), 'query'));
+
+  router.post('/user_history/thread/updates', handler(p => api.ask.userHistoryV0.updates(p), 'query'));
+
+  router.post('/user_history/thread/updates/subscribe', handler(p => api.ask.userHistoryV0.subscribe(p), 'query'));
+
+  router.post('/user_history/thread/updates/unsubscribe', handler(p => api.ask.userHistoryV0.unsubscribe(p), 'query'));
+
+  router.post('/user_history/thread/updates/dismiss_thread', handler(p => api.ask.userHistoryV0.dismissThread(p), 'query'));
+
+  router.post('/user_history/thread/updates/dismiss_overall', handler(p => api.ask.userHistoryV0.dismissOverall(p), 'query'));
+
+  router.post('/user_history/thread/updates/touch', handler((p, o) => api.ask.userHistoryV0.touchThread(p, o), 'query'));
+
+  // The resource-style API, not released yet
 
   router.get('/user_history/threads', handler(() => api.ask.userHistory.threads(), 'query'));
 

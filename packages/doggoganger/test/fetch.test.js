@@ -77,6 +77,153 @@ test('POST /ask/questions accepts JSON string body', async () => {
   assert.ok(data.question_id);
 });
 
+// The user history API in production today
+// @see https://miso-docs.apidocumentation.com/api/genai/user-history
+
+async function post(api, path, body, seed) {
+  return await (await fetch(api, `${BASE_URL}${path}`, { method: 'POST', body, seed })).json();
+}
+
+async function askTwoQuestions(api) {
+  const { data: first } = await post(api, '/ask/questions', { question: 'First' }, 1);
+  const { data: second } = await post(api, '/ask/questions', { question: 'Second' }, 2);
+  return [first.question_id, second.question_id];
+}
+
+test('POST /v1/ask/user_history lists threads newest first', async () => {
+  const api = buildApi({ detemporize: true });
+  const [, second] = await askTwoQuestions(api);
+
+  const res = await fetch(api, `${BASE_URL}/v1/ask/user_history`, { method: 'POST', body: { user_id: 'u1' } });
+  assert.is(res.status, 200);
+
+  const { data } = await res.json();
+  assert.equal(data.map(t => t.question), ['Second', 'First']);
+  assert.is(data[0].id, second);
+  assert.is(data[0].question_id, second);
+  assert.type(data[0].time, 'string');
+});
+
+test('POST /ask/user_history/thread opens a thread', async () => {
+  const api = buildApi({ detemporize: true });
+  const { data: root } = await post(api, '/ask/questions', { question: 'Root' });
+  const { data: child } = await post(api, '/ask/questions', { question: 'Follow up', parent_question_id: root.question_id });
+
+  const { data } = await post(api, '/ask/user_history/thread', { question_id: root.question_id });
+  assert.equal(data, { question_ids: [root.question_id, child.question_id], has_more: false });
+});
+
+test('POST /ask/user_history/thread/rename renames a thread', async () => {
+  const api = buildApi({ detemporize: true });
+  const { data: q } = await post(api, '/ask/questions', { question: 'Old' });
+
+  const res = await fetch(api, `${BASE_URL}/ask/user_history/thread/rename`, {
+    method: 'POST',
+    body: { question_id: q.question_id, user_id: 'u1', title: 'New' },
+  });
+  assert.is(res.status, 200);
+
+  const { data } = await post(api, '/ask/user_history', { user_id: 'u1' });
+  assert.equal(data.map(t => t.question), ['New']);
+});
+
+test('POST /ask/user_history/delete removes the listed threads', async () => {
+  const api = buildApi({ detemporize: true });
+  const [first, second] = await askTwoQuestions(api);
+
+  const { data } = await post(api, '/ask/user_history/delete', { ids: [first], user_id: 'u1' });
+  assert.equal(data, { deleted_count: 1 });
+
+  const { data: after } = await post(api, '/ask/user_history', { user_id: 'u1' });
+  assert.equal(after.map(t => t.id), [second]);
+});
+
+test('POST /ask/user_history/delete_all clears everything', async () => {
+  const api = buildApi({ detemporize: true });
+  await askTwoQuestions(api);
+
+  await post(api, '/ask/user_history/delete_all', { user_id: 'u1' });
+
+  const { data } = await post(api, '/ask/user_history', { user_id: 'u1' });
+  assert.equal(data, []);
+});
+
+test('POST /ask/user_history/thread/updates polls the account indicator', async () => {
+  const api = buildApi({ detemporize: true });
+  api.ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+
+  const { data } = await post(api, '/ask/user_history/thread/updates', { user_id: 'u1' });
+  assert.equal(data, { has_new: true });
+});
+
+test('POST /ask/user_history/thread/updates/dismiss_overall hides the indicator', async () => {
+  const api = buildApi({ detemporize: true });
+  api.ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+
+  await post(api, '/ask/user_history/thread/updates/dismiss_overall', { user_id: 'u1' });
+
+  const { data } = await post(api, '/ask/user_history/thread/updates', { user_id: 'u1' });
+  assert.equal(data, { has_new: false });
+});
+
+test('POST /ask/user_history/thread/updates/dismiss_thread clears one thread', async () => {
+  const api = buildApi({ detemporize: true });
+  api.ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+  const { data: list } = await post(api, '/ask/user_history', { user_id: 'u1' });
+  const { id } = list.find(t => t.has_new);
+
+  await post(api, '/ask/user_history/thread/updates/dismiss_thread', { user_id: 'u1', thread_id: id });
+
+  const { data: after } = await post(api, '/ask/user_history', { user_id: 'u1' });
+  assert.is(after.find(t => t.id === id).has_new, false);
+});
+
+test('POST /ask/user_history/thread/updates/(un)subscribe toggles the subscription', async () => {
+  const api = buildApi({ detemporize: true });
+  const { data: q } = await post(api, '/ask/questions', { question: 'First' });
+
+  await post(api, '/ask/user_history/thread/updates/unsubscribe', { user_id: 'u1', thread_id: q.question_id });
+  let { data } = await post(api, '/ask/user_history', { user_id: 'u1' });
+  assert.is(data[0].subscribed, false);
+
+  await post(api, '/ask/user_history/thread/updates/subscribe', { user_id: 'u1', thread_id: q.question_id });
+  ({ data } = await post(api, '/ask/user_history', { user_id: 'u1' }));
+  assert.is(data[0].subscribed, true);
+});
+
+test('POST /ask/user_history/thread/updates/touch generates an update', async () => {
+  const api = buildApi({ detemporize: true });
+  const { data: q } = await post(api, '/ask/questions', { question: 'Root' });
+
+  const { data } = await post(api, '/ask/user_history/thread/updates/touch', { thread_id: q.question_id, generate: true });
+  assert.is(data.generated, true);
+  assert.is(data.touched, 1);
+  assert.ok(data.question_id);
+
+  const { data: thread } = await post(api, '/ask/user_history/thread', { question_id: q.question_id });
+  assert.equal(thread.question_ids, [q.question_id, data.question_id]);
+});
+
+test('POST /ask/answers returns the answers of the given questions', async () => {
+  const api = buildApi({ detemporize: true });
+  const [first, second] = await askTwoQuestions(api);
+
+  const { data } = await post(api, '/ask/answers', { question_ids: [first, second] });
+  assert.equal(data.map(a => a.question_id), [first, second]);
+});
+
+test('unknown user history paths are rejected', async () => {
+  const api = buildApi({ detemporize: true });
+  try {
+    await fetch(api, `${BASE_URL}/ask/user_history/nonexistent`, { method: 'POST' });
+    assert.unreachable('should have thrown');
+  } catch (error) {
+    assert.match(error.message, 'Unknown path');
+  }
+});
+
+// The resource-style API, not released yet
+
 test('GET /ask/user_history/threads lists created threads', async () => {
   const api = buildApi({ detemporize: true });
   await fetch(api, `${BASE_URL}/ask/questions`, { method: 'POST', body: { question: 'First' }, seed: 1 });

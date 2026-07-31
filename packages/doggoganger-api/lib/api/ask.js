@@ -2,6 +2,7 @@ import { misoData } from '../data/index.js';
 import { BASE_TIMESTAMP, trimObj } from '../utils.js';
 import { MODE_QUESTION, MODE_SEARCH } from './constants.js';
 import { UserHistory } from './history.js';
+import { UserHistoryV0 } from './history-v0.js';
 
 const CPS = 100;
 const ITEMS_LOADING_TIME = 3; // seconds
@@ -39,6 +40,7 @@ export class Ask {
     this._answers = new Map();
     this._answerCount = 0;
     this.userHistory = new UserHistory(this);
+    this.userHistoryV0 = new UserHistoryV0(this);
   }
 
   questions(payload, { seed, ...options } = {}) {

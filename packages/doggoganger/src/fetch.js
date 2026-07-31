@@ -23,7 +23,11 @@ export default async function fetch(api, url, { method = 'GET', body, seed } = {
     name = 'answer';
     args = [segments[2]];
   } else if (group === 'ask' && segments[1] === 'user_history') {
-    ({ apiNode, name, args } = resolveUserHistory(api, method, segments, body));
+    // The resource-style API is not released yet, so it keeps its own subtree
+    // under /threads and /notifications; everything else is the current API.
+    const resolve = segments[2] === 'threads' || segments[2] === 'notifications' ?
+      resolveUserHistory : resolveUserHistoryV0;
+    ({ apiNode, name, args } = resolve(api, method, segments, body));
   }
 
   if (!apiNode || typeof apiNode[name] !== 'function') {
@@ -39,7 +43,55 @@ export default async function fetch(api, url, { method = 'GET', body, seed } = {
   });
 }
 
-// Resolves /ask/user_history/... paths to a userHistory method.
+// Resolves /ask/user_history/... paths to a userHistoryV0 method, following the
+// user history API in production today.
+// @see https://miso-docs.apidocumentation.com/api/genai/user-history
+function resolveUserHistoryV0(api, method, segments, body) {
+  const apiNode = api.ask.userHistoryV0;
+  const args = [body];
+  const [, , sub, ...rest] = segments;
+  switch (sub) {
+    case undefined:
+      return { apiNode, name: 'threads', args };
+    case 'delete':
+      return { apiNode, name: 'deleteThreads', args };
+    case 'delete_all':
+      return { apiNode, name: 'deleteAllThreads', args };
+    case 'thread':
+      break;
+    default:
+      return { apiNode, name: undefined, args };
+  }
+  switch (rest[0]) {
+    case undefined:
+      return { apiNode, name: 'openThread', args };
+    case 'rename':
+      return { apiNode, name: 'renameThread', args };
+    case 'updates':
+      break;
+    default:
+      return { apiNode, name: undefined, args };
+  }
+  switch (rest[1]) {
+    case undefined:
+      return { apiNode, name: 'updates', args };
+    case 'subscribe':
+      return { apiNode, name: 'subscribe', args };
+    case 'unsubscribe':
+      return { apiNode, name: 'unsubscribe', args };
+    case 'dismiss_thread':
+      return { apiNode, name: 'dismissThread', args };
+    case 'dismiss_overall':
+      return { apiNode, name: 'dismissOverall', args };
+    case 'touch':
+      return { apiNode, name: 'touchThread', args };
+    default:
+      return { apiNode, name: undefined, args };
+  }
+}
+
+// Resolves /ask/user_history/... paths to a userHistory method, following the
+// resource-style API that is not released yet.
 function resolveUserHistory(api, method, segments, body) {
   const apiNode = api.ask.userHistory;
   if (segments[2] === 'notifications') {
