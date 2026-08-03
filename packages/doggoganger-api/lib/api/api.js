@@ -1,4 +1,5 @@
 import { misoData } from '../data/index.js';
+import { ApiContext } from './context.js';
 import { Ask } from './ask.js';
 import { Search } from './search.js';
 import { Recommendation } from './recommendation.js';
@@ -15,11 +16,12 @@ export function api(options) {
 export class Api {
 
   constructor(options = {}) {
-    this.ask = new Ask(options);
-    this.search = new Search(options);
-    this.recommendation = new Recommendation(options);
-    this.interactions = new Interactions(options);
-    this.products = new Products(options);
+    const context = this._context = new ApiContext(options);
+    this.ask = new Ask(context);
+    this.search = new Search(context);
+    this.recommendation = new Recommendation(context);
+    this.interactions = new Interactions(context);
+    this.products = new Products(context);
   }
 
   // The signed-in user, as a mocked JWT the client can decode for its claims.

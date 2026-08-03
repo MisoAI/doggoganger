@@ -66,25 +66,40 @@ test('follow-up of an unknown parent starts a new thread', () => {
   assert.is(threads[0].title, 'Orphan');
 });
 
-test('each created answer is dated a minute after the previous one', () => {
+test('each created answer is dated 5 seconds after the previous one', () => {
   const ask = makeAsk();
   const { question_id: first } = ask.questions({ question: 'First' }, { seed: SEED_A });
   const { question_id: second } = ask.questions({ question: 'Second' }, { seed: SEED_B });
 
   assert.is(ask.answer(first).datetime, '2026-01-01T00:00:00.000');
-  assert.is(ask.answer(second).datetime, '2026-01-01T00:01:00.000');
+  assert.is(ask.answer(second).datetime, '2026-01-01T00:00:05.000');
 
   // Threads carry the bumped datetime through as updated_at
   const { threads } = ask.userHistory.threads();
-  assert.equal(threads.map(t => t.updated_at), ['2026-01-01T00:00:00.000', '2026-01-01T00:01:00.000']);
+  assert.equal(threads.map(t => t.updated_at), ['2026-01-01T00:00:00.000', '2026-01-01T00:00:05.000']);
 });
 
-test('an explicit payload timestamp wins over the running clock', () => {
+test('an explicit payload timestamp wins over, and leaves alone, the running clock', () => {
   const ask = makeAsk();
   ask.questions({ question: 'First' }, { seed: SEED_A });
   const { question_id } = ask.questions({ question: 'Pinned', timestamp: Date.UTC(2026, 5, 1) }, { seed: SEED_B });
+  const { question_id: third } = ask.questions({ question: 'Third' }, { seed: 3 });
 
   assert.is(ask.answer(question_id).datetime, '2026-06-01T00:00:00.000');
+  // The pinned question did not consume a clock tick
+  assert.is(ask.answer(third).datetime, '2026-01-01T00:00:05.000');
+});
+
+test('generateThreads spaces questions 30 seconds apart and threads 10 minutes apart', () => {
+  const ask = makeAsk();
+  ask.userHistory.generateThreads({ rows: 2, questionRows: 2 }, { seed: SEED });
+
+  const { threads } = ask.userHistory.threads();
+  const [first, second] = threads.map(t => ask.userHistory.getThread(t.thread_id));
+  assert.equal(first.questions_ids.map(id => ask.answer(id).datetime),
+    ['2026-01-01T00:00:00.000', '2026-01-01T00:00:30.000']);
+  assert.equal(second.questions_ids.map(id => ask.answer(id).datetime),
+    ['2026-01-01T00:10:30.000', '2026-01-01T00:11:00.000']);
 });
 
 test('log_user_history = false does not create a thread', () => {
@@ -516,7 +531,7 @@ test('touchThread bumps the thread time and flags it unread', () => {
 
   assert.equal(result, { touched: 1 });
   const thread = ask.userHistory.getThread(question_id);
-  assert.is(thread.updated_at, '2026-01-01T00:01:00.000');
+  assert.is(thread.updated_at, '2026-01-01T00:00:05.000');
   assert.is(thread.has_new, true);
 });
 

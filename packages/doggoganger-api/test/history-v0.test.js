@@ -12,7 +12,7 @@ function makeAsk() {
   return api({ detemporize: true }).ask;
 }
 
-// Two threads, one question each: 'First' at 00:00, 'Second' at 00:01
+// Two threads, one question each: 'First' at 00:00:00, 'Second' at 00:00:05
 function makeAskWithTwoThreads() {
   const ask = makeAsk();
   const { question_id: first } = ask.questions({ question: 'First' }, { seed: SEED_A });
@@ -71,7 +71,7 @@ test('threads() echoes start and rows', () => {
 test('threads() keeps only threads older than before', () => {
   const { ask } = makeAskWithTwoThreads();
 
-  const { threads } = ask.userHistoryV0.threads({ before: '2026-01-01T00:01:00.000' });
+  const { threads } = ask.userHistoryV0.threads({ before: '2026-01-01T00:00:05.000' });
   assert.equal(threads.map(t => t.title), ['First']);
 });
 
@@ -220,7 +220,7 @@ test('touchThread raises the indicator and bumps the thread time', () => {
   assert.equal(result, { touched: 1 });
   const [entry] = ask.userHistoryV0.threads().threads;
   assert.is(entry.id, second);
-  assert.is(entry.time, '2026-01-01T00:02:00.000');
+  assert.is(entry.time, '2026-01-01T00:00:10.000');
   assert.is(entry.has_new, true);
 });
 

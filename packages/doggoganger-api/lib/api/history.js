@@ -1,9 +1,13 @@
 import { misoData } from '../data/index.js';
-import { formatDatetime } from '../utils.js';
 import { MODE_QUESTION } from './constants.js';
 
 // Generated updates are marked so clients can tell them from user questions
 export const GENERATED_BY = 'answer_update_monitor';
+
+// Spacing used by generateThreads: questions within a thread follow each other
+// closely, while a longer gap separates one thread from the next.
+const QUESTION_INCREMENT = 30 * 1000; // milliseconds
+const THREAD_GAP = 10 * 60 * 1000; // milliseconds
 
 export class UserHistory {
 
@@ -101,7 +105,7 @@ export class UserHistory {
       return { touched: 0 };
     }
     if (!generate) {
-      thread.updated_at = formatDatetime(this._ask._nextTimestamp());
+      thread.updated_at = this._ask._context.nextDatetime();
       thread.has_new = true;
       return { touched: 1 };
     }
@@ -125,7 +129,9 @@ export class UserHistory {
 
     let parent_question_id;
     for (let i = 0; i < questionRows; i++) {
-      ({ question_id: parent_question_id } = this._ask._createAnswer(data, MODE_QUESTION, { cite_link: true, ...payload, parent_question_id }, { finished: true, ...options }));
+      // A new thread opens a longer gap after the preceding activity
+      const timestamp = this._ask._context.nextTimestamp(i === 0 ? THREAD_GAP : QUESTION_INCREMENT);
+      ({ question_id: parent_question_id } = this._ask._createAnswer(data, MODE_QUESTION, { cite_link: true, timestamp, ...payload, parent_question_id }, { finished: true, ...options }));
     }
 
     // Simulate threads with server-side activity the user has not seen yet

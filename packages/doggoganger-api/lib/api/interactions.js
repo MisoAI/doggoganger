@@ -1,7 +1,8 @@
 export class Interactions {
 
-  constructor(options) {
-    this._options = options;
+  constructor(context) {
+    this._context = context;
+    this._options = context.options;
   }
 
   upload(records, { seed } = {}) {

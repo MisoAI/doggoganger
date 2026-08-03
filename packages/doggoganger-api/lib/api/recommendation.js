@@ -2,8 +2,9 @@ import { misoData } from '../data/index.js';
 
 export class Recommendation {
 
-  constructor(options) {
-    this._options = options;
+  constructor(context) {
+    this._context = context;
+    this._options = context.options;
   }
 
   user_to_products({ rows = 5, ...rest }, { seed } = {}) {
