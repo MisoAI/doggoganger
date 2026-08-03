@@ -440,8 +440,8 @@ test('getUpdates reports the unread badge state', () => {
   ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
 
   const unread = ask.userHistory.threads().threads.filter(t => t.has_new);
-  const { has_unread, unread_count, last_update_at } = ask.userHistory.getUpdates();
-  assert.is(has_unread, true);
+  const { has_new, unread_count, last_update_at } = ask.userHistory.getUpdates();
+  assert.is(has_new, true);
   assert.is(unread_count, unread.length);
   assert.ok(unread_count > 0);
   assert.ok(unread.some(t => t.updated_at === last_update_at));
@@ -451,8 +451,8 @@ test('getUpdates is empty without unread threads', () => {
   const ask = makeAsk();
   ask.questions({ question: 'What is Miso?' }, { seed: SEED });
 
-  const { has_unread, unread_count, last_update_at } = ask.userHistory.getUpdates();
-  assert.is(has_unread, false);
+  const { has_new, unread_count, last_update_at } = ask.userHistory.getUpdates();
+  assert.is(has_new, false);
   assert.is(unread_count, 0);
   assert.is(last_update_at, undefined);
 });
@@ -472,7 +472,7 @@ test('markThreadAsRead decrements unread_count', () => {
   assert.is(ask.userHistory.getUpdates().unread_count, before.unread_count - 1);
 });
 
-test('marking all threads read clears has_unread', () => {
+test('marking all threads read clears has_new', () => {
   const ask = makeAsk();
   ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
 
@@ -482,8 +482,8 @@ test('marking all threads read clears has_unread', () => {
     }
   }
 
-  const { has_unread, unread_count } = ask.userHistory.getUpdates();
-  assert.is(has_unread, false);
+  const { has_new, unread_count } = ask.userHistory.getUpdates();
+  assert.is(has_new, false);
   assert.is(unread_count, 0);
 });
 
@@ -495,7 +495,7 @@ test('dismissNotification hides the badge but keeps threads unread', () => {
   ask.userHistory.dismissNotification();
 
   const after = ask.userHistory.getUpdates();
-  assert.is(after.has_unread, false);
+  assert.is(after.has_new, false);
   assert.is(after.unread_count, before.unread_count);
   assert.ok(ask.userHistory.threads().threads.some(t => t.has_new));
 });
@@ -504,13 +504,13 @@ test('activity newer than the dismissal raises the badge again', () => {
   const ask = makeAsk();
   ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
   ask.userHistory.dismissNotification();
-  assert.is(ask.userHistory.getUpdates().has_unread, false);
+  assert.is(ask.userHistory.getUpdates().has_new, false);
 
   // Simulate later server-side activity on an unread thread
   const entry = ask.userHistory.threads().threads.find(t => t.has_new);
   ask.userHistory._getThread(entry.thread_id).updated_at = '2026-02-01T00:00:00.000';
 
-  assert.is(ask.userHistory.getUpdates().has_unread, true);
+  assert.is(ask.userHistory.getUpdates().has_new, true);
 });
 
 test('getThread throws 404 for unknown thread_id', () => {

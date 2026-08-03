@@ -85,7 +85,7 @@ export class UserHistoryV0 {
 
   // POST /ask/user_history/thread/updates
   updates() {
-    return { has_new: this._history.getUpdates().has_unread };
+    return { has_new: this._history.getUpdates().has_new };
   }
 
   // POST /ask/user_history/thread/updates/dismiss_thread

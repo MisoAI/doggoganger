@@ -353,7 +353,7 @@ test('GET /ask/user_history/notifications reports the unread badge state', async
   assert.is(res.status, 200);
 
   const { data } = await res.json();
-  assert.is(data.has_unread, true);
+  assert.is(data.has_new, true);
   assert.ok(data.unread_count > 0);
   assert.type(data.last_update_at, 'string');
 });
@@ -366,7 +366,7 @@ test('POST /ask/user_history/notifications/dismiss hides the badge', async () =>
   assert.is(res.status, 200);
 
   const { data } = await (await fetch(api, `${BASE_URL}/ask/user_history/notifications`)).json();
-  assert.is(data.has_unread, false);
+  assert.is(data.has_new, false);
   assert.ok(data.unread_count > 0);
 });
 

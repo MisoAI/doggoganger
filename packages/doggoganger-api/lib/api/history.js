@@ -72,9 +72,9 @@ export class UserHistory {
         last_update_at = updated_at;
       }
     }
-    const has_unread = unread_count > 0 &&
+    const has_new = unread_count > 0 &&
       (this._badge_dismissed_at === undefined || last_update_at > this._badge_dismissed_at);
-    return { has_unread, unread_count, last_update_at };
+    return { has_new, unread_count, last_update_at };
   }
 
   dismissNotification() {
