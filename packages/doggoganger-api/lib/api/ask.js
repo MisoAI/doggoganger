@@ -49,8 +49,9 @@ export class Ask {
     return { question_id };
   }
 
+  // Entries match the input order; unknown question ids yield null
   answers({ question_ids }) {
-    return question_ids.map(question_id => this.answer(question_id));
+    return question_ids.map(question_id => this._answers.has(question_id) ? this.answer(question_id) : null);
   }
 
   search(payload, { seed, ...options } = {}) {

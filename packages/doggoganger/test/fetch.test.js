@@ -90,18 +90,34 @@ async function askTwoQuestions(api) {
   return [first.question_id, second.question_id];
 }
 
-test('POST /v1/ask/user_history lists threads newest first', async () => {
+test('POST /v1/ask/user_history/list lists threads newest first', async () => {
   const api = buildApi({ detemporize: true });
   const [, second] = await askTwoQuestions(api);
 
-  const res = await fetch(api, `${BASE_URL}/v1/ask/user_history`, { method: 'POST', body: { user_id: 'u1' } });
+  const res = await fetch(api, `${BASE_URL}/v1/ask/user_history/list`, { method: 'POST', body: { user_id: 'u1' } });
   assert.is(res.status, 200);
 
   const { data } = await res.json();
-  assert.equal(data.map(t => t.question), ['Second', 'First']);
-  assert.is(data[0].id, second);
-  assert.is(data[0].question_id, second);
-  assert.type(data[0].time, 'string');
+  assert.equal(data.threads.map(t => t.title), ['Second', 'First']);
+  assert.is(data.threads[0].id, second);
+  assert.is(data.threads[0].question_id, second);
+  assert.type(data.threads[0].time, 'string');
+  assert.is(data.has_more, false);
+  assert.is(data.start, 0);
+  assert.is(data.rows, 100);
+});
+
+test('POST /ask/user_history/list pages with rows and start', async () => {
+  const api = buildApi({ detemporize: true });
+  await askTwoQuestions(api);
+
+  const { data } = await post(api, '/ask/user_history/list', { user_id: 'u1', rows: 1 });
+  assert.equal(data.threads.map(t => t.title), ['Second']);
+  assert.is(data.has_more, true);
+
+  const { data: next } = await post(api, '/ask/user_history/list', { user_id: 'u1', rows: 1, start: 1 });
+  assert.equal(next.threads.map(t => t.title), ['First']);
+  assert.is(next.has_more, false);
 });
 
 test('POST /ask/user_history/thread opens a thread', async () => {
@@ -109,7 +125,7 @@ test('POST /ask/user_history/thread opens a thread', async () => {
   const { data: root } = await post(api, '/ask/questions', { question: 'Root' });
   const { data: child } = await post(api, '/ask/questions', { question: 'Follow up', parent_question_id: root.question_id });
 
-  const { data } = await post(api, '/ask/user_history/thread', { question_id: root.question_id });
+  const { data } = await post(api, '/ask/user_history/thread', { thread_id: root.question_id });
   assert.equal(data, { question_ids: [root.question_id, child.question_id], has_more: false });
 });
 
@@ -119,23 +135,25 @@ test('POST /ask/user_history/thread/rename renames a thread', async () => {
 
   const res = await fetch(api, `${BASE_URL}/ask/user_history/thread/rename`, {
     method: 'POST',
-    body: { question_id: q.question_id, user_id: 'u1', title: 'New' },
+    body: { thread_id: q.question_id, user_id: 'u1', title: 'New' },
   });
   assert.is(res.status, 200);
+  const { data: renamed } = await res.json();
+  assert.equal(renamed, { question_id: q.question_id, title: 'New' });
 
-  const { data } = await post(api, '/ask/user_history', { user_id: 'u1' });
-  assert.equal(data.map(t => t.question), ['New']);
+  const { data } = await post(api, '/ask/user_history/list', { user_id: 'u1' });
+  assert.equal(data.threads.map(t => t.title), ['New']);
 });
 
 test('POST /ask/user_history/delete removes the listed threads', async () => {
   const api = buildApi({ detemporize: true });
   const [first, second] = await askTwoQuestions(api);
 
-  const { data } = await post(api, '/ask/user_history/delete', { ids: [first], user_id: 'u1' });
+  const { data } = await post(api, '/ask/user_history/delete', { question_ids: [first], user_id: 'u1' });
   assert.equal(data, { deleted_count: 1 });
 
-  const { data: after } = await post(api, '/ask/user_history', { user_id: 'u1' });
-  assert.equal(after.map(t => t.id), [second]);
+  const { data: after } = await post(api, '/ask/user_history/list', { user_id: 'u1' });
+  assert.equal(after.threads.map(t => t.id), [second]);
 });
 
 test('POST /ask/user_history/delete_all clears everything', async () => {
@@ -144,8 +162,8 @@ test('POST /ask/user_history/delete_all clears everything', async () => {
 
   await post(api, '/ask/user_history/delete_all', { user_id: 'u1' });
 
-  const { data } = await post(api, '/ask/user_history', { user_id: 'u1' });
-  assert.equal(data, []);
+  const { data } = await post(api, '/ask/user_history/list', { user_id: 'u1' });
+  assert.equal(data.threads, []);
 });
 
 test('POST /ask/user_history/thread/updates polls the account indicator', async () => {
@@ -169,13 +187,13 @@ test('POST /ask/user_history/thread/updates/dismiss_overall hides the indicator'
 test('POST /ask/user_history/thread/updates/dismiss_thread clears one thread', async () => {
   const api = buildApi({ detemporize: true });
   api.ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
-  const { data: list } = await post(api, '/ask/user_history', { user_id: 'u1' });
-  const { id } = list.find(t => t.has_new);
+  const { data: list } = await post(api, '/ask/user_history/list', { user_id: 'u1' });
+  const { id } = list.threads.find(t => t.has_new);
 
   await post(api, '/ask/user_history/thread/updates/dismiss_thread', { user_id: 'u1', thread_id: id });
 
-  const { data: after } = await post(api, '/ask/user_history', { user_id: 'u1' });
-  assert.is(after.find(t => t.id === id).has_new, false);
+  const { data: after } = await post(api, '/ask/user_history/list', { user_id: 'u1' });
+  assert.is(after.threads.find(t => t.id === id).has_new, false);
 });
 
 test('POST /ask/user_history/thread/updates/(un)subscribe toggles the subscription', async () => {
@@ -183,12 +201,12 @@ test('POST /ask/user_history/thread/updates/(un)subscribe toggles the subscripti
   const { data: q } = await post(api, '/ask/questions', { question: 'First' });
 
   await post(api, '/ask/user_history/thread/updates/unsubscribe', { user_id: 'u1', thread_id: q.question_id });
-  let { data } = await post(api, '/ask/user_history', { user_id: 'u1' });
-  assert.is(data[0].subscribed, false);
+  let { data } = await post(api, '/ask/user_history/list', { user_id: 'u1' });
+  assert.is(data.threads[0].subscribed, false);
 
   await post(api, '/ask/user_history/thread/updates/subscribe', { user_id: 'u1', thread_id: q.question_id });
-  ({ data } = await post(api, '/ask/user_history', { user_id: 'u1' }));
-  assert.is(data[0].subscribed, true);
+  ({ data } = await post(api, '/ask/user_history/list', { user_id: 'u1' }));
+  assert.is(data.threads[0].subscribed, true);
 });
 
 test('POST /ask/user_history/thread/updates/touch generates an update', async () => {
@@ -200,7 +218,7 @@ test('POST /ask/user_history/thread/updates/touch generates an update', async ()
   assert.is(data.touched, 1);
   assert.ok(data.question_id);
 
-  const { data: thread } = await post(api, '/ask/user_history/thread', { question_id: q.question_id });
+  const { data: thread } = await post(api, '/ask/user_history/thread', { thread_id: q.question_id });
   assert.equal(thread.question_ids, [q.question_id, data.question_id]);
 });
 
@@ -210,6 +228,15 @@ test('POST /ask/answers returns the answers of the given questions', async () =>
 
   const { data } = await post(api, '/ask/answers', { question_ids: [first, second] });
   assert.equal(data.map(a => a.question_id), [first, second]);
+});
+
+test('POST /ask/answers returns null for unknown question ids', async () => {
+  const api = buildApi({ detemporize: true });
+  const [first] = await askTwoQuestions(api);
+
+  const { data } = await post(api, '/ask/answers', { question_ids: [first, 'nonexistent-id'] });
+  assert.is(data[0].question_id, first);
+  assert.is(data[1], null);
 });
 
 test('unknown user history paths are rejected', async () => {

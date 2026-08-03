@@ -17,18 +17,23 @@ export class UserHistoryV0 {
     return this._ask.userHistory;
   }
 
-  // POST /ask/user_history
-  threads({ rows = 100, offset = 0, before } = {}) {
+  // POST /ask/user_history/list
+  threads({ rows = 100, start = 0, before } = {}) {
     let threads = [...this._history._threads.values()].sort(byUpdatedAtDesc);
     if (before !== undefined) {
       threads = threads.filter(({ updated_at }) => updated_at < before);
     }
-    return threads.slice(offset, offset + rows).map(mapToThreadEntry);
+    return {
+      threads: threads.slice(start, start + rows).map(mapToThreadEntry),
+      has_more: threads.length > start + rows,
+      start,
+      rows,
+    };
   }
 
   // POST /ask/user_history/thread
-  openThread({ question_id, rows = 30, after, order = 'asc' } = {}) {
-    const thread = this._getThreadByQuestion(question_id);
+  openThread({ thread_id, rows = 30, after, order = 'asc' } = {}) {
+    const thread = this._getThreadByQuestion(thread_id);
     let question_ids = [...thread.questions_ids];
     if (order === 'desc') {
       question_ids.reverse();
@@ -46,20 +51,22 @@ export class UserHistoryV0 {
   }
 
   // POST /ask/user_history/thread/rename
-  renameThread({ question_id, title } = {}) {
-    this._getThreadByQuestion(question_id).title = title;
+  renameThread({ thread_id, title } = {}) {
+    const thread = this._getThreadByQuestion(thread_id);
+    thread.title = title;
+    return { question_id: thread.thread_id, title };
   }
 
   // POST /ask/user_history/delete
-  deleteThreads({ ids = [] } = {}) {
+  deleteThreads({ question_ids = [] } = {}) {
     const { _threads } = this._history;
     let deleted_count = 0;
-    for (const id of ids) {
+    for (const id of question_ids) {
       if (_threads.has(id)) {
         deleted_count++;
       }
     }
-    this._history.deleteThreads({ thread_ids: ids });
+    this._history.deleteThreads({ thread_ids: question_ids });
     return { deleted_count };
   }
 
@@ -133,7 +140,7 @@ function mapToThreadEntry({ thread_id, title, updated_at, subscribed, has_new })
     id: thread_id,
     time: updated_at,
     question_id: thread_id,
-    question: title,
+    title,
     subscribed,
     has_new,
   };

@@ -51,7 +51,7 @@ function resolveUserHistoryV0(api, method, segments, body) {
   const args = [body];
   const [, , sub, ...rest] = segments;
   switch (sub) {
-    case undefined:
+    case 'list':
       return { apiNode, name: 'threads', args };
     case 'delete':
       return { apiNode, name: 'deleteThreads', args };

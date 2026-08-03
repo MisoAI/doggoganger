@@ -102,15 +102,14 @@ test('answers() returns an empty array for empty question_ids', () => {
   assert.equal(ask.answers({ question_ids: [] }), []);
 });
 
-test('answers() throws 404 when any question_id is unknown', () => {
+test('answers() returns null in place for an unknown question_id', () => {
   const ask = makeAsk();
   const { question_id } = ask.questions(PAYLOAD, { seed: SEED });
-  try {
-    ask.answers({ question_ids: [question_id, 'nonexistent-id'] });
-    assert.unreachable('should have thrown');
-  } catch (err) {
-    assert.is(err.status, 404);
-  }
+
+  const results = ask.answers({ question_ids: [question_id, 'nonexistent-id'] });
+  assert.is(results.length, 2);
+  assert.is(results[0].question_id, question_id);
+  assert.is(results[1], null);
 });
 
 test('answer throws 404 for unknown question_id', () => {

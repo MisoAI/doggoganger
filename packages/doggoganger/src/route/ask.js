@@ -58,7 +58,7 @@ export default function(api) {
   // The user history API in production today
   // @see https://miso-docs.apidocumentation.com/api/genai/user-history
 
-  router.post('/user_history', handler(p => api.ask.userHistoryV0.threads(p), 'query'));
+  router.post('/user_history/list', handler(p => api.ask.userHistoryV0.threads(p), 'query'));
 
   router.post('/user_history/thread', handler(p => api.ask.userHistoryV0.openThread(p), 'query'));
 
