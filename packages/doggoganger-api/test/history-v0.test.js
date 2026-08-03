@@ -31,7 +31,7 @@ test('threads() maps a thread to the v0 entry shape', () => {
       time: '2026-01-01T00:00:00.000',
       question_id,
       title: 'What is Miso?',
-      subscribed: true,
+      subscribed: false,
       has_new: false,
     }],
     has_more: false,
@@ -162,15 +162,18 @@ test('deleteAllThreads clears the history', () => {
   assert.equal(ask.userHistoryV0.threads().threads, []);
 });
 
-test('subscribe and unsubscribe accept the request but leave the subscription untouched', () => {
+test('subscribe and unsubscribe toggle watching a thread', () => {
   const ask = makeAsk();
   const { question_id: thread_id } = ask.questions({ question: 'What is Miso?' }, { seed: SEED });
 
-  ask.userHistoryV0.unsubscribe({ thread_id });
-  assert.is(ask.userHistoryV0.threads().threads[0].subscribed, true);
+  // Watching a thread is opt-in
+  assert.is(ask.userHistoryV0.threads().threads[0].subscribed, false);
 
   ask.userHistoryV0.subscribe({ thread_id });
   assert.is(ask.userHistoryV0.threads().threads[0].subscribed, true);
+
+  ask.userHistoryV0.unsubscribe({ thread_id });
+  assert.is(ask.userHistoryV0.threads().threads[0].subscribed, false);
 });
 
 test('subscribe throws 404 for an unknown thread_id', () => {
@@ -187,13 +190,13 @@ test('updates reports the account level indicator', () => {
   const ask = makeAsk();
   assert.equal(ask.userHistoryV0.updates({}), { has_new: false });
 
-  ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+  ask.userHistory.generateThreads({ rows: 6 }, { seed: SEED });
   assert.equal(ask.userHistoryV0.updates({}), { has_new: true });
 });
 
 test('dismissOverall hides the account level indicator', () => {
   const ask = makeAsk();
-  ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+  ask.userHistory.generateThreads({ rows: 6 }, { seed: SEED });
 
   ask.userHistoryV0.dismissOverall({});
 
@@ -204,7 +207,7 @@ test('dismissOverall hides the account level indicator', () => {
 
 test('dismissThread clears the indicator of a single thread', () => {
   const ask = makeAsk();
-  ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+  ask.userHistory.generateThreads({ rows: 6 }, { seed: SEED });
   const { id } = ask.userHistoryV0.threads().threads.find(t => t.has_new);
 
   ask.userHistoryV0.dismissThread({ thread_id: id });
@@ -214,6 +217,7 @@ test('dismissThread clears the indicator of a single thread', () => {
 
 test('touchThread raises the indicator and bumps the thread time', () => {
   const { ask, second } = makeAskWithTwoThreads();
+  ask.userHistoryV0.subscribe({ thread_id: second });
 
   const result = ask.userHistoryV0.touchThread({ thread_id: second });
 
@@ -227,6 +231,7 @@ test('touchThread raises the indicator and bumps the thread time', () => {
 test('touchThread with generate appends a new question to the thread', () => {
   const ask = makeAsk();
   const { question_id: root } = ask.questions({ question: 'Root' }, { seed: SEED_A });
+  ask.userHistoryV0.subscribe({ thread_id: root });
 
   const { generated, question_id, touched } = ask.userHistoryV0.touchThread({ thread_id: root, generate: true }, { seed: SEED_B });
 

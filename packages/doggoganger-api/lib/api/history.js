@@ -60,6 +60,18 @@ export class UserHistory {
     return { ...thread };
   }
 
+  // Both are idempotent: re-subscribing or re-unsubscribing succeeds unchanged
+  subscribeThread(thread_id) {
+    this._getThread(thread_id).subscribed = true;
+  }
+
+  unsubscribeThread(thread_id) {
+    const thread = this._getThread(thread_id);
+    thread.subscribed = false;
+    // A thread no longer watched has nothing new to report
+    thread.has_new = false;
+  }
+
   getUpdates() {
     let unread_count = 0;
     let last_update_at;
@@ -134,11 +146,14 @@ export class UserHistory {
       ({ question_id: parent_question_id } = this._ask._createAnswer(data, MODE_QUESTION, { cite_link: true, timestamp, ...payload, parent_question_id }, { finished: true, ...options }));
     }
 
-    // Simulate threads with server-side activity the user has not seen yet
+    // Simulate server-side monitoring: some threads are subscribed, and only
+    // those can carry activity the user has not seen yet
+    const subscribed = prng.randomBool();
     const has_new = prng.randomBool();
     const thread = this._threadByQuestion.get(parent_question_id);
     if (thread) {
-      thread.has_new = has_new;
+      thread.subscribed = subscribed;
+      thread.has_new = subscribed && has_new;
     }
   }
 
@@ -176,7 +191,8 @@ export class UserHistory {
       thread_id: question_id,
       title: question,
       updated_at: datetime,
-      subscribed: true,
+      // Watching a thread for updates is opt-in
+      subscribed: false,
       has_new: false,
       questions_ids: [question_id],
     };

@@ -72,15 +72,13 @@ export class UserHistoryV0 {
   }
 
   // POST /ask/user_history/thread/updates/subscribe
-  // Subscription state is not modeled yet: the thread is validated but every
-  // thread stays subscribed, matching the idempotent success of the real API.
   subscribe({ thread_id } = {}) {
-    this._history._getThread(thread_id);
+    this._history.subscribeThread(thread_id);
   }
 
   // POST /ask/user_history/thread/updates/unsubscribe
   unsubscribe({ thread_id } = {}) {
-    this._history._getThread(thread_id);
+    this._history.unsubscribeThread(thread_id);
   }
 
   // POST /ask/user_history/thread/updates

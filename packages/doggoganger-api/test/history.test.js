@@ -102,6 +102,16 @@ test('generateThreads spaces questions 30 seconds apart and threads 10 minutes a
     ['2026-01-01T00:10:30.000', '2026-01-01T00:11:00.000']);
 });
 
+test('generateThreads subscribes some threads, and only those can be unread', () => {
+  const ask = makeAsk();
+  ask.userHistory.generateThreads({ rows: 12 }, { seed: SEED });
+
+  const { threads } = ask.userHistory.threads();
+  assert.ok(threads.some(t => t.subscribed));
+  assert.ok(threads.some(t => !t.subscribed));
+  assert.ok(threads.every(t => !t.has_new || t.subscribed));
+});
+
 test('log_user_history = false does not create a thread', () => {
   const ask = makeAsk();
   const { question_id } = ask.questions({ question: 'Off the record', log_user_history: false }, { seed: SEED });
@@ -406,7 +416,7 @@ test('threads created by asking questions start read', () => {
 
 test('generateThreads marks some threads unread', () => {
   const ask = makeAsk();
-  ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+  ask.userHistory.generateThreads({ rows: 6 }, { seed: SEED });
 
   const { threads } = ask.userHistory.threads();
   assert.ok(threads.some(t => t.has_new === true));
@@ -415,7 +425,7 @@ test('generateThreads marks some threads unread', () => {
 
 test('markThreadAsRead clears the unread flag', () => {
   const ask = makeAsk();
-  ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+  ask.userHistory.generateThreads({ rows: 6 }, { seed: SEED });
   const { thread_id } = ask.userHistory.threads().threads.find(t => t.has_new);
 
   const updated = ask.userHistory.markThreadAsRead(thread_id);
@@ -437,7 +447,7 @@ test('markThreadAsRead throws 404 for unknown thread_id', () => {
 
 test('getUpdates reports the unread badge state', () => {
   const ask = makeAsk();
-  ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+  ask.userHistory.generateThreads({ rows: 6 }, { seed: SEED });
 
   const unread = ask.userHistory.threads().threads.filter(t => t.has_new);
   const { has_new, unread_count, last_update_at } = ask.userHistory.getUpdates();
@@ -459,7 +469,7 @@ test('getUpdates is empty without unread threads', () => {
 
 test('markThreadAsRead decrements unread_count', () => {
   const ask = makeAsk();
-  ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+  ask.userHistory.generateThreads({ rows: 6 }, { seed: SEED });
   const before = ask.userHistory.getUpdates();
 
   for (const { thread_id, has_new } of ask.userHistory.threads().threads) {
@@ -474,7 +484,7 @@ test('markThreadAsRead decrements unread_count', () => {
 
 test('marking all threads read clears has_new', () => {
   const ask = makeAsk();
-  ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+  ask.userHistory.generateThreads({ rows: 6 }, { seed: SEED });
 
   for (const { thread_id, has_new } of ask.userHistory.threads().threads) {
     if (has_new) {
@@ -489,7 +499,7 @@ test('marking all threads read clears has_new', () => {
 
 test('dismissNotification hides the badge but keeps threads unread', () => {
   const ask = makeAsk();
-  ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+  ask.userHistory.generateThreads({ rows: 6 }, { seed: SEED });
   const before = ask.userHistory.getUpdates();
 
   ask.userHistory.dismissNotification();
@@ -502,7 +512,7 @@ test('dismissNotification hides the badge but keeps threads unread', () => {
 
 test('activity newer than the dismissal raises the badge again', () => {
   const ask = makeAsk();
-  ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+  ask.userHistory.generateThreads({ rows: 6 }, { seed: SEED });
   ask.userHistory.dismissNotification();
   assert.is(ask.userHistory.getUpdates().has_new, false);
 
@@ -523,9 +533,24 @@ test('getThread throws 404 for unknown thread_id', () => {
   }
 });
 
+test('unsubscribeThread clears the unread mark', () => {
+  const ask = makeAsk();
+  const { question_id } = ask.questions({ question: 'What is Miso?' }, { seed: SEED });
+  ask.userHistory.subscribeThread(question_id);
+  ask.userHistory.touchThread(question_id);
+  assert.is(ask.userHistory.getThread(question_id).has_new, true);
+
+  ask.userHistory.unsubscribeThread(question_id);
+
+  const thread = ask.userHistory.getThread(question_id);
+  assert.is(thread.subscribed, false);
+  assert.is(thread.has_new, false);
+});
+
 test('touchThread bumps the thread time and flags it unread', () => {
   const ask = makeAsk();
   const { question_id } = ask.questions({ question: 'What is Miso?' }, { seed: SEED });
+  ask.userHistory.subscribeThread(question_id);
 
   const result = ask.userHistory.touchThread(question_id);
 
@@ -538,6 +563,7 @@ test('touchThread bumps the thread time and flags it unread', () => {
 test('touchThread with generate appends a marked update to the thread', () => {
   const ask = makeAsk();
   const { question_id: root } = ask.questions({ question: 'What is Miso?' }, { seed: SEED_A });
+  ask.userHistory.subscribeThread(root);
 
   const { generated, question_id, touched } = ask.userHistory.touchThread(root, { generate: true }, { seed: SEED_B });
 
@@ -554,8 +580,8 @@ test('touchThread with generate appends a marked update to the thread', () => {
 
 test('touchThread does not touch an unsubscribed thread', () => {
   const ask = makeAsk();
+  // Threads start unsubscribed, so a fresh thread receives no updates
   const { question_id } = ask.questions({ question: 'What is Miso?' }, { seed: SEED });
-  ask.userHistory._getThread(question_id).subscribed = false;
 
   const result = ask.userHistory.touchThread(question_id, { generate: true }, { seed: SEED_B });
 

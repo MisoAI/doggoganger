@@ -168,7 +168,7 @@ test('POST /ask/user_history/delete_all clears everything', async () => {
 
 test('POST /ask/user_history/thread/updates polls the account indicator', async () => {
   const api = buildApi({ detemporize: true });
-  api.ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+  api.ask.userHistory.generateThreads({ rows: 6 }, { seed: SEED });
 
   const { data } = await post(api, '/ask/user_history/thread/updates', { user_id: 'u1' });
   assert.equal(data, { has_new: true });
@@ -176,7 +176,7 @@ test('POST /ask/user_history/thread/updates polls the account indicator', async 
 
 test('POST /ask/user_history/thread/updates/dismiss_overall hides the indicator', async () => {
   const api = buildApi({ detemporize: true });
-  api.ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+  api.ask.userHistory.generateThreads({ rows: 6 }, { seed: SEED });
 
   await post(api, '/ask/user_history/thread/updates/dismiss_overall', { user_id: 'u1' });
 
@@ -186,7 +186,7 @@ test('POST /ask/user_history/thread/updates/dismiss_overall hides the indicator'
 
 test('POST /ask/user_history/thread/updates/dismiss_thread clears one thread', async () => {
   const api = buildApi({ detemporize: true });
-  api.ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+  api.ask.userHistory.generateThreads({ rows: 6 }, { seed: SEED });
   const { data: list } = await post(api, '/ask/user_history/list', { user_id: 'u1' });
   const { id } = list.threads.find(t => t.has_new);
 
@@ -196,23 +196,24 @@ test('POST /ask/user_history/thread/updates/dismiss_thread clears one thread', a
   assert.is(after.threads.find(t => t.id === id).has_new, false);
 });
 
-test('POST /ask/user_history/thread/updates/(un)subscribe succeed without changing the subscription', async () => {
+test('POST /ask/user_history/thread/updates/(un)subscribe toggle watching a thread', async () => {
   const api = buildApi({ detemporize: true });
   const { data: q } = await post(api, '/ask/questions', { question: 'First' });
 
-  const res = await post(api, '/ask/user_history/thread/updates/unsubscribe', { user_id: 'u1', thread_id: q.question_id });
+  const res = await post(api, '/ask/user_history/thread/updates/subscribe', { user_id: 'u1', thread_id: q.question_id });
   assert.is(res.message, 'success');
   let { data } = await post(api, '/ask/user_history/list', { user_id: 'u1' });
   assert.is(data.threads[0].subscribed, true);
 
-  await post(api, '/ask/user_history/thread/updates/subscribe', { user_id: 'u1', thread_id: q.question_id });
+  await post(api, '/ask/user_history/thread/updates/unsubscribe', { user_id: 'u1', thread_id: q.question_id });
   ({ data } = await post(api, '/ask/user_history/list', { user_id: 'u1' }));
-  assert.is(data.threads[0].subscribed, true);
+  assert.is(data.threads[0].subscribed, false);
 });
 
 test('POST /ask/user_history/thread/updates/touch generates an update', async () => {
   const api = buildApi({ detemporize: true });
   const { data: q } = await post(api, '/ask/questions', { question: 'Root' });
+  await post(api, '/ask/user_history/thread/updates/subscribe', { user_id: 'u1', thread_id: q.question_id });
 
   const { data } = await post(api, '/ask/user_history/thread/updates/touch', { thread_id: q.question_id, generate: true });
   assert.is(data.generated, true);
@@ -332,7 +333,7 @@ test('POST /ask/user_history/threads/_delete_all clears everything', async () =>
 
 test('POST /ask/user_history/threads/:id/read marks the thread read', async () => {
   const api = buildApi({ detemporize: true });
-  api.ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+  api.ask.userHistory.generateThreads({ rows: 6 }, { seed: SEED });
   const list = await (await fetch(api, `${BASE_URL}/ask/user_history/threads`)).json();
   const { thread_id } = list.data.threads.find(t => t.has_new);
 
@@ -347,7 +348,7 @@ test('POST /ask/user_history/threads/:id/read marks the thread read', async () =
 
 test('GET /ask/user_history/notifications reports the unread badge state', async () => {
   const api = buildApi({ detemporize: true });
-  api.ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+  api.ask.userHistory.generateThreads({ rows: 6 }, { seed: SEED });
 
   const res = await fetch(api, `${BASE_URL}/ask/user_history/notifications`);
   assert.is(res.status, 200);
@@ -360,7 +361,7 @@ test('GET /ask/user_history/notifications reports the unread badge state', async
 
 test('POST /ask/user_history/notifications/dismiss hides the badge', async () => {
   const api = buildApi({ detemporize: true });
-  api.ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
+  api.ask.userHistory.generateThreads({ rows: 6 }, { seed: SEED });
 
   const res = await fetch(api, `${BASE_URL}/ask/user_history/notifications/dismiss`, { method: 'POST' });
   assert.is(res.status, 200);
