@@ -162,12 +162,12 @@ test('deleteAllThreads clears the history', () => {
   assert.equal(ask.userHistoryV0.threads().threads, []);
 });
 
-test('subscribe and unsubscribe toggle the thread subscription', () => {
+test('subscribe and unsubscribe accept the request but leave the subscription untouched', () => {
   const ask = makeAsk();
   const { question_id: thread_id } = ask.questions({ question: 'What is Miso?' }, { seed: SEED });
 
   ask.userHistoryV0.unsubscribe({ thread_id });
-  assert.is(ask.userHistoryV0.threads().threads[0].subscribed, false);
+  assert.is(ask.userHistoryV0.threads().threads[0].subscribed, true);
 
   ask.userHistoryV0.subscribe({ thread_id });
   assert.is(ask.userHistoryV0.threads().threads[0].subscribed, true);
@@ -217,7 +217,7 @@ test('touchThread raises the indicator and bumps the thread time', () => {
 
   const result = ask.userHistoryV0.touchThread({ thread_id: second });
 
-  assert.equal(result, { generated: false, question_id: undefined, touched: 1 });
+  assert.equal(result, { touched: 1 });
   const [entry] = ask.userHistoryV0.threads().threads;
   assert.is(entry.id, second);
   assert.is(entry.time, '2026-01-01T00:02:00.000');

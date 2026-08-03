@@ -154,7 +154,7 @@ class Answer {
     const sources = this._sources(elapsed, finished);
     const related_resources = this._related_resources(elapsed, finished);
     const followup_questions = this._followup_questions(elapsed, finished);
-    const { question_id, datetime, parent_question_id, images } = this._data;
+    const { question_id, datetime, parent_question_id, metadata, images } = this._data;
 
     switch (this._mode) {
       case MODE_QUESTION:
@@ -167,6 +167,7 @@ class Answer {
           parent_question_id,
           question,
           question_id,
+          metadata,
           images,
           sources,
           related_resources,

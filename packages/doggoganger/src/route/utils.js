@@ -37,7 +37,7 @@ export function responseFunction(response) {
   }
   switch (response) {
     case 'query':
-      return data => ({ data, version });
+      return data => ({ message: 'success', data, version });
     case 'data':
       return data => ({ took: 5, errors: false, data, version });
     default:

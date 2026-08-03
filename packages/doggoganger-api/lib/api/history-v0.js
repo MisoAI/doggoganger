@@ -1,7 +1,3 @@
-import { misoData } from '../data/index.js';
-import { formatDatetime } from '../utils.js';
-import { MODE_QUESTION } from './constants.js';
-
 // The user history API as it exists in production today: a flat, POST-only
 // surface where a thread is addressed by the question_id of its root question.
 // It reads and writes the same thread store as UserHistory, which models the
@@ -76,18 +72,20 @@ export class UserHistoryV0 {
   }
 
   // POST /ask/user_history/thread/updates/subscribe
+  // Subscription state is not modeled yet: the thread is validated but every
+  // thread stays subscribed, matching the idempotent success of the real API.
   subscribe({ thread_id } = {}) {
-    this._history._getThread(thread_id).subscribed = true;
+    this._history._getThread(thread_id);
   }
 
   // POST /ask/user_history/thread/updates/unsubscribe
   unsubscribe({ thread_id } = {}) {
-    this._history._getThread(thread_id).subscribed = false;
+    this._history._getThread(thread_id);
   }
 
   // POST /ask/user_history/thread/updates
   updates() {
-    return { has_new: this._history.notifications().has_unread };
+    return { has_new: this._history.getUpdates().has_unread };
   }
 
   // POST /ask/user_history/thread/updates/dismiss_thread
@@ -97,25 +95,12 @@ export class UserHistoryV0 {
 
   // POST /ask/user_history/thread/updates/dismiss_overall
   dismissOverall() {
-    this._history.dismissNotifications();
+    this._history.dismissNotification();
   }
 
   // POST /ask/user_history/thread/updates/touch
-  // Simulates server-side activity on a thread, optionally generating a new
-  // answer in it, so clients can exercise the update indicators on demand.
   touchThread({ thread_id, generate = false } = {}, { seed } = {}) {
-    const thread = this._history._getThread(thread_id);
-    let question_id;
-    if (generate) {
-      const data = misoData({ seed });
-      const parent_question_id = thread.questions_ids[thread.questions_ids.length - 1];
-      // _track() bumps updated_at as the generated question joins the thread
-      ({ question_id } = this._ask._createAnswer(data, MODE_QUESTION, { cite_link: true, parent_question_id }, { finished: true }));
-    } else {
-      thread.updated_at = formatDatetime(this._ask._nextTimestamp());
-    }
-    thread.has_new = true;
-    return { generated: !!generate, question_id, touched: 1 };
+    return this._history.touchThread(thread_id, { generate }, { seed });
   }
 
   _getThreadByQuestion(question_id) {

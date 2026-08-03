@@ -1,5 +1,9 @@
 import { misoData } from '../data/index.js';
+import { formatDatetime } from '../utils.js';
 import { MODE_QUESTION } from './constants.js';
+
+// Generated updates are marked so clients can tell them from user questions
+export const GENERATED_BY = 'answer_update_monitor';
 
 export class UserHistory {
 
@@ -52,7 +56,7 @@ export class UserHistory {
     return { ...thread };
   }
 
-  notifications() {
+  getUpdates() {
     let unread_count = 0;
     let last_update_at;
     for (const { has_new, updated_at } of this._threads.values()) {
@@ -69,7 +73,7 @@ export class UserHistory {
     return { has_unread, unread_count, last_update_at };
   }
 
-  dismissNotifications() {
+  dismissNotification() {
     for (const { updated_at } of this._threads.values()) {
       if (this._badge_dismissed_at === undefined || updated_at > this._badge_dismissed_at) {
         this._badge_dismissed_at = updated_at;
@@ -77,6 +81,7 @@ export class UserHistory {
     }
   }
 
+  // admin ///
   generateThreads({ rows = [3, 6], ...options } = {}, { seed } = {}) {
     const data = misoData({ seed });
     const prng = data._lorem.prng;
@@ -84,6 +89,34 @@ export class UserHistory {
     for (let i = 0; i < rows; i++) {
       this._generateThread(data, options);
     }
+  }
+
+  // Simulates server-side activity on a thread, optionally generating a new
+  // answer in it, so clients can exercise the update indicators on demand.
+  // Only subscribed threads receive updates; touched reports how many
+  // subscriptions matched.
+  touchThread(thread_id, { generate = false } = {}, { seed } = {}) {
+    const thread = this._getThread(thread_id);
+    if (!thread.subscribed) {
+      return { touched: 0 };
+    }
+    if (!generate) {
+      thread.updated_at = formatDatetime(this._ask._nextTimestamp());
+      thread.has_new = true;
+      return { touched: 1 };
+    }
+    const data = misoData({ seed });
+    const parent_question_id = thread.questions_ids[thread.questions_ids.length - 1];
+    // A generated update reads as an ordinary thread turn, distinguished by
+    // its metadata marker; _track() bumps updated_at as it joins the thread
+    const { question_id } = this._ask._createAnswer(data, MODE_QUESTION, {
+      cite_link: true,
+      parent_question_id,
+      question: `Latest developments since ${thread.updated_at} regarding: ${thread.title}`,
+      metadata: { miso_generated_by: GENERATED_BY },
+    }, { finished: true });
+    thread.has_new = true;
+    return { generated: true, question_id, touched: 1 };
   }
 
   _generateThread(data, { questionRows = [1, 10], payload = {}, ...options } = {}) {

@@ -420,23 +420,23 @@ test('markThreadAsRead throws 404 for unknown thread_id', () => {
   }
 });
 
-test('notifications reports the unread badge state', () => {
+test('getUpdates reports the unread badge state', () => {
   const ask = makeAsk();
   ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
 
   const unread = ask.userHistory.threads().threads.filter(t => t.has_new);
-  const { has_unread, unread_count, last_update_at } = ask.userHistory.notifications();
+  const { has_unread, unread_count, last_update_at } = ask.userHistory.getUpdates();
   assert.is(has_unread, true);
   assert.is(unread_count, unread.length);
   assert.ok(unread_count > 0);
   assert.ok(unread.some(t => t.updated_at === last_update_at));
 });
 
-test('notifications is empty without unread threads', () => {
+test('getUpdates is empty without unread threads', () => {
   const ask = makeAsk();
   ask.questions({ question: 'What is Miso?' }, { seed: SEED });
 
-  const { has_unread, unread_count, last_update_at } = ask.userHistory.notifications();
+  const { has_unread, unread_count, last_update_at } = ask.userHistory.getUpdates();
   assert.is(has_unread, false);
   assert.is(unread_count, 0);
   assert.is(last_update_at, undefined);
@@ -445,7 +445,7 @@ test('notifications is empty without unread threads', () => {
 test('markThreadAsRead decrements unread_count', () => {
   const ask = makeAsk();
   ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
-  const before = ask.userHistory.notifications();
+  const before = ask.userHistory.getUpdates();
 
   for (const { thread_id, has_new } of ask.userHistory.threads().threads) {
     if (has_new) {
@@ -454,7 +454,7 @@ test('markThreadAsRead decrements unread_count', () => {
     }
   }
 
-  assert.is(ask.userHistory.notifications().unread_count, before.unread_count - 1);
+  assert.is(ask.userHistory.getUpdates().unread_count, before.unread_count - 1);
 });
 
 test('marking all threads read clears has_unread', () => {
@@ -467,19 +467,19 @@ test('marking all threads read clears has_unread', () => {
     }
   }
 
-  const { has_unread, unread_count } = ask.userHistory.notifications();
+  const { has_unread, unread_count } = ask.userHistory.getUpdates();
   assert.is(has_unread, false);
   assert.is(unread_count, 0);
 });
 
-test('dismissNotifications hides the badge but keeps threads unread', () => {
+test('dismissNotification hides the badge but keeps threads unread', () => {
   const ask = makeAsk();
   ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
-  const before = ask.userHistory.notifications();
+  const before = ask.userHistory.getUpdates();
 
-  ask.userHistory.dismissNotifications();
+  ask.userHistory.dismissNotification();
 
-  const after = ask.userHistory.notifications();
+  const after = ask.userHistory.getUpdates();
   assert.is(after.has_unread, false);
   assert.is(after.unread_count, before.unread_count);
   assert.ok(ask.userHistory.threads().threads.some(t => t.has_new));
@@ -488,20 +488,72 @@ test('dismissNotifications hides the badge but keeps threads unread', () => {
 test('activity newer than the dismissal raises the badge again', () => {
   const ask = makeAsk();
   ask.userHistory.generateThreads({ rows: 4 }, { seed: SEED });
-  ask.userHistory.dismissNotifications();
-  assert.is(ask.userHistory.notifications().has_unread, false);
+  ask.userHistory.dismissNotification();
+  assert.is(ask.userHistory.getUpdates().has_unread, false);
 
   // Simulate later server-side activity on an unread thread
   const entry = ask.userHistory.threads().threads.find(t => t.has_new);
   ask.userHistory._getThread(entry.thread_id).updated_at = '2026-02-01T00:00:00.000';
 
-  assert.is(ask.userHistory.notifications().has_unread, true);
+  assert.is(ask.userHistory.getUpdates().has_unread, true);
 });
 
 test('getThread throws 404 for unknown thread_id', () => {
   const ask = makeAsk();
   try {
     ask.userHistory.getThread('nonexistent-id');
+    assert.unreachable('should have thrown');
+  } catch (err) {
+    assert.is(err.status, 404);
+  }
+});
+
+test('touchThread bumps the thread time and flags it unread', () => {
+  const ask = makeAsk();
+  const { question_id } = ask.questions({ question: 'What is Miso?' }, { seed: SEED });
+
+  const result = ask.userHistory.touchThread(question_id);
+
+  assert.equal(result, { touched: 1 });
+  const thread = ask.userHistory.getThread(question_id);
+  assert.is(thread.updated_at, '2026-01-01T00:01:00.000');
+  assert.is(thread.has_new, true);
+});
+
+test('touchThread with generate appends a marked update to the thread', () => {
+  const ask = makeAsk();
+  const { question_id: root } = ask.questions({ question: 'What is Miso?' }, { seed: SEED_A });
+
+  const { generated, question_id, touched } = ask.userHistory.touchThread(root, { generate: true }, { seed: SEED_B });
+
+  assert.is(generated, true);
+  assert.is(touched, 1);
+  assert.ok(question_id);
+  assert.equal(ask.userHistory.getThread(root).questions_ids, [root, question_id]);
+
+  // The generated update reads as an ordinary turn with a metadata marker
+  const answer = ask.answer(question_id);
+  assert.equal(answer.metadata, { miso_generated_by: 'answer_update_monitor' });
+  assert.match(answer.question, /^Latest developments since 2026-01-01T00:00:00\.000 regarding: What is Miso\?/);
+});
+
+test('touchThread does not touch an unsubscribed thread', () => {
+  const ask = makeAsk();
+  const { question_id } = ask.questions({ question: 'What is Miso?' }, { seed: SEED });
+  ask.userHistory._getThread(question_id).subscribed = false;
+
+  const result = ask.userHistory.touchThread(question_id, { generate: true }, { seed: SEED_B });
+
+  assert.equal(result, { touched: 0 });
+  const thread = ask.userHistory.getThread(question_id);
+  assert.is(thread.has_new, false);
+  assert.equal(thread.questions_ids, [question_id]);
+});
+
+test('touchThread throws 404 for unknown thread_id', () => {
+  const ask = makeAsk();
+  try {
+    ask.userHistory.touchThread('nonexistent-id');
     assert.unreachable('should have thrown');
   } catch (err) {
     assert.is(err.status, 404);

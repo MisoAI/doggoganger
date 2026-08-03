@@ -26,7 +26,7 @@ export default function(api) {
     const data = api.ask.questions(payload, getOptionsFromCtx(ctx));
     const time = rollLatency(DEFAULT_LATENCY_OPTIONS.min, DEFAULT_LATENCY_OPTIONS.max);
     await delay(time);
-    ctx.body = JSON.stringify({ data, version });
+    ctx.body = JSON.stringify({ message: 'success', data, version });
   });
 
   router.get('/questions/:id/answer', async (ctx) => {
@@ -34,7 +34,7 @@ export default function(api) {
     const data = api.ask.answer(id);
     const time = rollLatency(DEFAULT_LATENCY_OPTIONS.min, DEFAULT_LATENCY_OPTIONS.max);
     await delay(time);
-    ctx.body = JSON.stringify({ data, version });
+    ctx.body = JSON.stringify({ message: 'success', data, version });
   });
 
   router.post('/answers', handler(p => api.ask.answers(p), 'query'));
@@ -44,7 +44,7 @@ export default function(api) {
     const data = api.ask.search(payload, getOptionsFromCtx(ctx));
     const time = rollLatency(DEFAULT_LATENCY_OPTIONS.min, DEFAULT_LATENCY_OPTIONS.max);
     await delay(time);
-    ctx.body = JSON.stringify({ data, version });
+    ctx.body = JSON.stringify({ message: 'success', data, version });
   });
 
   router.post('/related_questions', handler((p, o) => api.ask.related_questions(p, o), 'query'));
@@ -96,9 +96,9 @@ export default function(api) {
 
   router.post('/user_history/threads/:id/read', handler((p, o, ctx) => api.ask.userHistory.markThreadAsRead(ctx.params.id), 'query'));
 
-  router.get('/user_history/notifications', handler(() => api.ask.userHistory.notifications(), 'query'));
+  router.get('/user_history/notifications', handler(() => api.ask.userHistory.getUpdates(), 'query'));
 
-  router.post('/user_history/notifications/dismiss', handler(() => api.ask.userHistory.dismissNotifications(), 'query'));
+  router.post('/user_history/notifications/dismiss', handler(() => api.ask.userHistory.dismissNotification(), 'query'));
 
   return router;
 }

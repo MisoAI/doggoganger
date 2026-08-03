@@ -96,8 +96,8 @@ function resolveUserHistory(api, method, segments, body) {
   const apiNode = api.ask.userHistory;
   if (segments[2] === 'notifications') {
     return segments[3] === 'dismiss' ?
-      { apiNode, name: 'dismissNotifications', args: [] } :
-      { apiNode, name: 'notifications', args: [] };
+      { apiNode, name: 'dismissNotification', args: [] } :
+      { apiNode, name: 'getUpdates', args: [] };
   }
   if (segments[2] !== 'threads') {
     return { apiNode, name: undefined, args: [] };

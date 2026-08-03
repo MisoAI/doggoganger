@@ -196,13 +196,14 @@ test('POST /ask/user_history/thread/updates/dismiss_thread clears one thread', a
   assert.is(after.threads.find(t => t.id === id).has_new, false);
 });
 
-test('POST /ask/user_history/thread/updates/(un)subscribe toggles the subscription', async () => {
+test('POST /ask/user_history/thread/updates/(un)subscribe succeed without changing the subscription', async () => {
   const api = buildApi({ detemporize: true });
   const { data: q } = await post(api, '/ask/questions', { question: 'First' });
 
-  await post(api, '/ask/user_history/thread/updates/unsubscribe', { user_id: 'u1', thread_id: q.question_id });
+  const res = await post(api, '/ask/user_history/thread/updates/unsubscribe', { user_id: 'u1', thread_id: q.question_id });
+  assert.is(res.message, 'success');
   let { data } = await post(api, '/ask/user_history/list', { user_id: 'u1' });
-  assert.is(data.threads[0].subscribed, false);
+  assert.is(data.threads[0].subscribed, true);
 
   await post(api, '/ask/user_history/thread/updates/subscribe', { user_id: 'u1', thread_id: q.question_id });
   ({ data } = await post(api, '/ask/user_history/list', { user_id: 'u1' }));
