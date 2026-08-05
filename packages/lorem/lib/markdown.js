@@ -33,7 +33,8 @@ export class Markdown {
       'emphasis-1': () => this._multiply(this._emphasisAdfix(1), 2),
       'emphasis-2': () => this._multiply(this._emphasisAdfix(2), 2),
       'emphasis-3': () => this._multiply(this._emphasisAdfix(3), 2),
-      'strikethrough': () => ['~', '~'],
+      // GFM strikethrough requires double tildes
+      'strikethrough': () => ['~~', '~~'],
       'link': ({ url = 'https://miso.ai' } = {}) => [`[`, `](${url})`],
     };
   }
@@ -62,7 +63,14 @@ export class Markdown {
     const blockCount = this._lorem.prng.randomInt(...blocks);
     const selection = this._lorem.utils.select(WEIGHTED_FEATURES, blockCount);
 
-    let result = selection.map(feature => this[feature](options)).join('\n\n');
+    let result = selection.map((feature, i) => {
+      // Per CommonMark, a 4-space indented block after a list is absorbed into
+      // the last list item as content rather than parsed as a code block, so
+      // only the fenced form may follow a list
+      const blockOptions = feature === 'codeBlock' && selection[i - 1] === 'list' ?
+        { ...options, indentable: false } : options;
+      return this[feature](blockOptions);
+    }).join('\n\n');
 
     // TODO: block features
     /*
@@ -134,8 +142,10 @@ export class Markdown {
     return `[${label}]: ${destination}${title !== undefined ? ` ${title}` : ''}`;
   }
 
-  codeBlock(options) {
-    return this._prng.randomBool(0.75) ? this.fencedCodeBlock(options) : this.indentedCodeBlock(options);
+  codeBlock({ indentable = true, ...options } = {}) {
+    // Roll unconditionally to keep the random stream independent of context
+    const fenced = this._prng.randomBool(0.75);
+    return fenced || !indentable ? this.fencedCodeBlock(options) : this.indentedCodeBlock(options);
   }
 
   indentedCodeBlock({ lang, content, size }) {
