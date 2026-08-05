@@ -533,7 +533,7 @@ test('getThread throws 404 for unknown thread_id', () => {
   }
 });
 
-test('unsubscribeThread clears the unread mark', () => {
+test('unsubscribeThread keeps the unread mark', () => {
   const ask = makeAsk();
   const { question_id } = ask.questions({ question: 'What is Miso?' }, { seed: SEED });
   ask.userHistory.subscribeThread(question_id);
@@ -544,7 +544,7 @@ test('unsubscribeThread clears the unread mark', () => {
 
   const thread = ask.userHistory.getThread(question_id);
   assert.is(thread.subscribed, false);
-  assert.is(thread.has_new, false);
+  assert.is(thread.has_new, true);
 });
 
 test('touchThread bumps the thread time and flags it unread', () => {

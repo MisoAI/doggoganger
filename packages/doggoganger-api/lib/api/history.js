@@ -66,10 +66,9 @@ export class UserHistory {
   }
 
   unsubscribeThread(thread_id) {
-    const thread = this._getThread(thread_id);
-    thread.subscribed = false;
-    // A thread no longer watched has nothing new to report
-    thread.has_new = false;
+    // Stops future updates; an already raised unread mark stays until
+    // dismissed
+    this._getThread(thread_id).subscribed = false;
   }
 
   getUpdates() {
