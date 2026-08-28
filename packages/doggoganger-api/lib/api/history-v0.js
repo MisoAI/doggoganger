@@ -41,6 +41,8 @@ export class UserHistoryV0 {
       }
     }
     return {
+      // The same thread properties as a list entry, plus the question ids
+      ...mapToThreadEntry(thread),
       question_ids: question_ids.slice(0, rows),
       has_more: question_ids.length > rows,
     };

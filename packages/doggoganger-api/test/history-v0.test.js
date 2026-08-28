@@ -75,12 +75,20 @@ test('threads() keeps only threads older than before', () => {
   assert.equal(threads.map(t => t.title), ['First']);
 });
 
-test('openThread returns the question ids of the thread', () => {
+test('openThread returns the thread entry properties with its question ids', () => {
   const ask = makeAsk();
   const { question_id: root } = ask.questions({ question: 'Root' }, { seed: SEED_A });
   const { question_id: child } = ask.questions({ question: 'Follow up', parent_question_id: root }, { seed: SEED_B });
 
   assert.equal(ask.userHistoryV0.openThread({ thread_id: root }), {
+    // The same properties a list entry carries...
+    id: root,
+    time: '2026-01-01T00:00:05.000',
+    question_id: root,
+    title: 'Root',
+    subscribed: false,
+    has_new: false,
+    // ...plus the ids of the questions in the thread
     question_ids: [root, child],
     has_more: false,
   });
@@ -99,10 +107,9 @@ test('openThread reports has_more when rows cuts the thread short', () => {
   const { question_id: root } = ask.questions({ question: 'Root' }, { seed: SEED_A });
   ask.questions({ question: 'Follow up', parent_question_id: root }, { seed: SEED_B });
 
-  assert.equal(ask.userHistoryV0.openThread({ thread_id: root, rows: 1 }), {
-    question_ids: [root],
-    has_more: true,
-  });
+  const result = ask.userHistoryV0.openThread({ thread_id: root, rows: 1 });
+  assert.equal(result.question_ids, [root]);
+  assert.is(result.has_more, true);
 });
 
 test('openThread honors order and after', () => {

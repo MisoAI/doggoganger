@@ -126,7 +126,16 @@ test('POST /ask/user_history/thread opens a thread', async () => {
   const { data: child } = await post(api, '/ask/questions', { question: 'Follow up', parent_question_id: root.question_id });
 
   const { data } = await post(api, '/ask/user_history/thread', { thread_id: root.question_id });
-  assert.equal(data, { question_ids: [root.question_id, child.question_id], has_more: false });
+  assert.equal(data, {
+    id: root.question_id,
+    time: '2026-01-01T00:00:05.000',
+    question_id: root.question_id,
+    title: 'Root',
+    subscribed: false,
+    has_new: false,
+    question_ids: [root.question_id, child.question_id],
+    has_more: false,
+  });
 });
 
 test('POST /ask/user_history/thread/rename renames a thread', async () => {
