@@ -380,4 +380,39 @@ test('POST /ask/user_history/notifications/dismiss hides the badge', async () =>
   assert.ok(data.unread_count > 0);
 });
 
+test('a token of a past generation is rejected with 401', async () => {
+  const api = buildApi({ detemporize: true });
+  const headers = { Authorization: `Bearer ${api.me().jwt}` };
+  const request = () => fetch(api, `${BASE_URL}/ask/user_history/threads`, { method: 'GET', headers, seed: SEED });
+
+  assert.is((await request()).status, 200);
+
+  api.bumpGeneration();
+  const res = await request();
+  assert.is(res.status, 401);
+  const body = await res.json();
+  assert.is(body.errors, true);
+  assert.type(body.message, 'string');
+
+  // a token of the new generation is accepted again
+  headers.Authorization = `Bearer ${api.me().jwt}`;
+  assert.is((await request()).status, 200);
+});
+
+test('the authorization header is read in any case, and from Headers', async () => {
+  const api = buildApi({ detemporize: true });
+  const jwt = api.me().jwt;
+  api.bumpGeneration();
+  const url = `${BASE_URL}/ask/user_history/threads`;
+  assert.is((await fetch(api, url, { headers: { authorization: `Bearer ${jwt}` }, seed: SEED })).status, 401);
+  assert.is((await fetch(api, url, { headers: new Headers({ Authorization: `Bearer ${jwt}` }), seed: SEED })).status, 401);
+});
+
+test('a request without a token is not checked', async () => {
+  const api = buildApi({ detemporize: true });
+  api.bumpGeneration();
+  const res = await fetch(api, `${BASE_URL}/ask/user_history/threads`, { method: 'GET', seed: SEED });
+  assert.is(res.status, 200);
+});
+
 test.run();

@@ -1,6 +1,27 @@
+import { version } from '@miso.ai/lorem';
 import { responseFunction } from './route/utils.js';
 
-export default async function fetch(api, url, { method = 'GET', body, seed } = {}) {
+export default async function fetch(api, url, options = {}) {
+  try {
+    return await _fetch(api, url, options);
+  } catch (error) {
+    if (!error.status) {
+      throw error;
+    }
+    // an HTTP error by design (e.g. 401 on an expired token, 404 on an unknown
+    // thread): answered as the server would, not as a network failure
+    return new Response(JSON.stringify({
+      doggoganger_version: version,
+      errors: true,
+      message: error.message || '',
+    }), {
+      status: error.status,
+    });
+  }
+}
+
+async function _fetch(api, url, { method = 'GET', headers, body, seed } = {}) {
+  api.authorize(getHeader(headers, 'authorization'));
   method = method.toUpperCase();
   if (typeof body === 'string') {
     body = JSON.parse(body);
@@ -41,6 +62,18 @@ export default async function fetch(api, url, { method = 'GET', body, seed } = {
   return new Response(JSON.stringify(resBody), {
     status: 200,
   });
+}
+
+// headers as a Headers instance or a plain object, whose keys may be in any case
+function getHeader(headers, name) {
+  if (!headers) {
+    return undefined;
+  }
+  if (typeof headers.get === 'function') {
+    return headers.get(name) || undefined;
+  }
+  const key = Object.keys(headers).find(k => k.toLowerCase() === name);
+  return key !== undefined ? headers[key] : undefined;
 }
 
 // Resolves /ask/user_history/... paths to a userHistoryV0 method, following the

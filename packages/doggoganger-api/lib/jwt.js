@@ -13,6 +13,22 @@ export function mockJwt(claims) {
   return `${signingInput}.${mockSignature(signingInput)}`;
 }
 
+// The claims of a token, or undefined if it does not read as a JWT. Lenient by
+// design: the signature is not checked (see mockSignature), and a foreign or
+// opaque token simply has no claims to offer.
+export function decodeJwt(token) {
+  const segments = typeof token === 'string' ? token.split('.') : [];
+  if (segments.length !== 3) {
+    return undefined;
+  }
+  try {
+    const claims = JSON.parse(new TextDecoder().decode(fromBase64url(segments[1])));
+    return claims && typeof claims === 'object' ? claims : undefined;
+  } catch (_) {
+    return undefined;
+  }
+}
+
 function encodeJson(value) {
   return base64url(new TextEncoder().encode(JSON.stringify(value)));
 }
@@ -34,6 +50,24 @@ function base64url(bytes) {
     out += B64URL[b2 & 63];
   }
   return out;
+}
+
+function fromBase64url(str) {
+  const bytes = [];
+  let buffer = 0, bits = 0;
+  for (const char of str) {
+    const value = B64URL.indexOf(char);
+    if (value < 0) {
+      throw new Error(`Invalid base64url character: ${char}`);
+    }
+    buffer = (buffer << 6) | value;
+    bits += 6;
+    if (bits >= 8) {
+      bits -= 8;
+      bytes.push((buffer >> bits) & 0xff);
+    }
+  }
+  return new Uint8Array(bytes);
 }
 
 // 32 bytes derived from the signing input, so the same token always renders the

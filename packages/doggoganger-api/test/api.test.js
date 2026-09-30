@@ -55,4 +55,51 @@ test('me() varies by seed', () => {
   assert.is.not(decode(a.jwt.split('.')[1]).sub, decode(b.jwt.split('.')[1]).sub);
 });
 
+test('me() jwt carries the current generation', () => {
+  const a = api();
+  assert.is(decode(a.me({ seed: SEED }).jwt.split('.')[1]).gen, 0);
+  a.bumpGeneration();
+  assert.is(decode(a.me({ seed: SEED }).jwt.split('.')[1]).gen, 1);
+});
+
+test('bumpGeneration() returns the new generation', () => {
+  const a = api();
+  assert.is(a.bumpGeneration(), 1);
+  assert.is(a.bumpGeneration(), 2);
+});
+
+test('authorize() accepts a token of the current generation', () => {
+  const a = api();
+  a.bumpGeneration();
+  a.authorize(`Bearer ${a.me().jwt}`);
+});
+
+test('authorize() rejects a token of a past generation with 401', () => {
+  const a = api();
+  const { jwt } = a.me();
+  a.authorize(`Bearer ${jwt}`);
+  a.bumpGeneration();
+  try {
+    a.authorize(`Bearer ${jwt}`);
+    assert.unreachable('should have thrown');
+  } catch (error) {
+    assert.instance(error, Error);
+    assert.is(error.status, 401);
+  }
+});
+
+test('authorize() skips the check without a token', () => {
+  const a = api();
+  a.bumpGeneration();
+  a.authorize(undefined);
+  a.authorize('');
+});
+
+test('authorize() takes a token without generation as generation 0', () => {
+  const a = api();
+  a.authorize('Bearer 012345');
+  a.bumpGeneration();
+  assert.throws(() => a.authorize('Bearer 012345'), error => error.status === 401);
+});
+
 test.run();

@@ -5,7 +5,7 @@ import { Search } from './search.js';
 import { Recommendation } from './recommendation.js';
 import { Interactions } from './interactions.js';
 import { Products } from './products.js';
-import { mockJwt } from '../jwt.js';
+import { mockJwt, decodeJwt } from '../jwt.js';
 
 const TOKEN_LIFETIME = 60 * 60; // seconds
 
@@ -39,8 +39,34 @@ export class Api {
         email: `${name.toLowerCase().replace(/\s+/g, '.')}@example.com`,
         iat,
         exp: iat + TOKEN_LIFETIME,
+        gen: this._context.generation,
       }),
     };
+  }
+
+  // Expire every token issued so far: later requests carrying one of them are
+  // rejected with 401 until a token of the new generation is used. Returns the
+  // new generation.
+  bumpGeneration() {
+    return this._context.bumpGeneration();
+  }
+
+  // Check the Authorization header value of a request, throwing a 401 error on
+  // a token of a past generation. Lenient otherwise: no token means no check,
+  // and a token without a generation (not issued by me(), or opaque) counts as
+  // of generation 0 — accepted until the first bump.
+  authorize(authorization) {
+    if (!authorization) {
+      return;
+    }
+    const token = authorization.replace(/^Bearer\s+/i, '');
+    const claims = decodeJwt(token);
+    const gen = claims && Number.isInteger(claims.gen) ? claims.gen : 0;
+    if (gen < this._context.generation) {
+      const error = new Error('Token expired');
+      error.status = 401;
+      throw error;
+    }
   }
 
 }

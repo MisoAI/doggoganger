@@ -12,6 +12,19 @@ export class ApiContext {
   constructor(options = {}) {
     this.options = options;
     this._timestamp = undefined;
+    this._generation = 0;
+  }
+
+  // The token generation: tokens are stamped with the generation current at
+  // issue, and only those of the current generation are accepted — bumping it
+  // expires every token issued before, simulating an expiration at any chosen
+  // point of a flow, independent of time
+  get generation() {
+    return this._generation;
+  }
+
+  bumpGeneration() {
+    return ++this._generation;
   }
 
   // Advances the clock by `increment` milliseconds from the previous event and
