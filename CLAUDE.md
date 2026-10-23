@@ -41,7 +41,7 @@ This is a monorepo with three packages:
 
 ### packages/doggoganger
 Main package providing the Koa-based HTTP server. Entry points:
-- `cli/index.js` - CLI entry point, handles nodemon watch mode
+- `cli/index.js` - CLI entry point, handles watch mode via `node --watch-path`
 - `src/doggoganger.js` - Server setup with Koa, CORS, body parsing
 - `src/route/` - API route handlers for `/api` and `/v1` prefixes
 - `src/browser.js` - Browser bundle entry for UMD distribution

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { fileURLToPath } from 'url';
 import { dirname, resolve, join } from 'path';
-import nodemon from 'nodemon';
+import { spawn } from 'child_process';
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 import { doggoganger, version } from '../src/index.js';
@@ -38,17 +38,15 @@ const { verbose, port, serve } = argv;
 argv = { verbose, port, serve };
 
 if (watch) {
-  const exec = `node ${resolve(__dirname, 'server.js')} ${JSON.stringify(JSON.stringify(argv))}`;
-  nodemon({
-    exec,
-    watch: argv.static ? [SRC_DIR, '.'] : SRC_DIR,
-    ignore: ['*/node_modules/*'],
-    //ext: 'js json yaml',
-    verbose: true,
-  }).on('log', ({ colour }) => {
-    console.log(colour);
-  }).on('quit', () => process.exit());
-  
+  const child = spawn(process.execPath, [
+    `--watch-path=${SRC_DIR}`,
+    resolve(__dirname, 'server.js'),
+    JSON.stringify(argv),
+  ], { stdio: 'inherit' }).on('exit', code => process.exit(code ?? 0));
+  for (const signal of ['SIGINT', 'SIGTERM']) {
+    process.on(signal, () => child.kill(signal));
+  }
+
 } else {
   doggoganger(argv);
 }
