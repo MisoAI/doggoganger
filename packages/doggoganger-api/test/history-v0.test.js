@@ -33,6 +33,8 @@ test('threads() maps a thread to the v0 entry shape', () => {
       title: 'What is Miso?',
       subscribed: false,
       has_new: false,
+      favorite: false,
+      favorited_at: null,
     }],
     has_more: false,
     start: 0,
@@ -88,6 +90,8 @@ test('openThread returns the thread entry properties with its question ids', () 
     title: 'Root',
     subscribed: false,
     has_new: false,
+    favorite: false,
+    favorited_at: null,
     // ...plus the ids of the questions in the thread
     question_ids: [root, child],
     has_more: false,
@@ -259,6 +263,43 @@ test('touchThread throws 404 for an unknown thread_id', () => {
   } catch (error) {
     assert.is(error.status, 404);
   }
+});
+
+test('favorite stars a thread and returns its state', () => {
+  const { ask, first } = makeAskWithTwoThreads();
+
+  const result = ask.userHistoryV0.favorite({ thread_id: first, user_id: 'u1' });
+  assert.equal(result, {
+    thread_id: first,
+    question_id: first,
+    favorite: true,
+    favorited_at: result.favorited_at,
+  });
+  assert.type(result.favorited_at, 'string');
+
+  const unstarred = ask.userHistoryV0.favorite({ thread_id: first, favorite: false });
+  assert.equal(unstarred, { thread_id: first, question_id: first, favorite: false, favorited_at: null });
+});
+
+test('favorite rejects a follow-up question id with 404', () => {
+  const ask = makeAsk();
+  const { question_id: root } = ask.questions({ question: 'Root' }, { seed: SEED_A });
+  const { question_id: child } = ask.questions({ question: 'Follow up', parent_question_id: root }, { seed: SEED_B });
+  try {
+    ask.userHistoryV0.favorite({ thread_id: child });
+    assert.unreachable();
+  } catch (e) {
+    assert.is(e.status, 404);
+  }
+});
+
+test('threads() filters by favorite', () => {
+  const { ask, first } = makeAskWithTwoThreads();
+  ask.userHistoryV0.favorite({ thread_id: first });
+
+  assert.equal(ask.userHistoryV0.threads({ favorite: true }).threads.map(t => t.title), ['First']);
+  assert.equal(ask.userHistoryV0.threads({ favorite: false }).threads.map(t => t.title), ['Second']);
+  assert.equal(ask.userHistoryV0.threads().threads.map(t => t.title), ['Second', 'First']);
 });
 
 test.run();

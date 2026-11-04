@@ -65,6 +65,20 @@ export class UserHistory {
     this._getThread(thread_id).subscribed = true;
   }
 
+  // Idempotent: starring an already starred thread keeps its original
+  // favorited_at, and unstarring clears it
+  favoriteThread(thread_id, { favorite = true } = {}) {
+    const thread = this._getThread(thread_id);
+    favorite = !!favorite;
+    if (favorite && !thread.favorite) {
+      thread.favorited_at = this._ask._context.nextDatetime();
+    } else if (!favorite) {
+      thread.favorited_at = null;
+    }
+    thread.favorite = favorite;
+    return { ...thread };
+  }
+
   unsubscribeThread(thread_id) {
     // Stops future updates; an already raised unread mark stays until
     // dismissed
@@ -149,10 +163,18 @@ export class UserHistory {
     // those can carry activity the user has not seen yet
     const subscribed = prng.randomBool();
     const has_new = prng.randomBool();
+    // Some threads were starred by the user already
+    const favorite = prng.randomBool();
     const thread = this._threadByQuestion.get(parent_question_id);
     if (thread) {
       thread.subscribed = subscribed;
       thread.has_new = subscribed && has_new;
+      if (favorite) {
+        // Starred as of its latest activity, so favorited_at never runs ahead
+        // of the shared clock
+        thread.favorite = true;
+        thread.favorited_at = thread.updated_at;
+      }
     }
   }
 
@@ -193,6 +215,8 @@ export class UserHistory {
       // Watching a thread for updates is opt-in
       subscribed: false,
       has_new: false,
+      favorite: false,
+      favorited_at: null,
       questions_ids: [question_id],
     };
     this._threads.set(thread.thread_id, thread);

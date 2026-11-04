@@ -64,6 +64,8 @@ export default function(api) {
 
   router.post('/user_history/thread/rename', handler(p => api.ask.userHistoryV0.renameThread(p), 'query'));
 
+  router.post('/user_history/thread/favorite', handler(p => api.ask.userHistoryV0.favorite(p), 'query'));
+
   router.post('/user_history/delete', handler(p => api.ask.userHistoryV0.deleteThreads(p), 'query'));
 
   router.post('/user_history/delete_all', handler(p => api.ask.userHistoryV0.deleteAllThreads(p), 'query'));

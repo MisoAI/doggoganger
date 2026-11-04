@@ -100,6 +100,8 @@ function resolveUserHistoryV0(api, method, segments, body) {
       return { apiNode, name: 'openThread', args };
     case 'rename':
       return { apiNode, name: 'renameThread', args };
+    case 'favorite':
+      return { apiNode, name: 'favorite', args };
     case 'updates':
       break;
     default:

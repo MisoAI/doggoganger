@@ -133,6 +133,8 @@ test('POST /ask/user_history/thread opens a thread', async () => {
     title: 'Root',
     subscribed: false,
     has_new: false,
+    favorite: false,
+    favorited_at: null,
     question_ids: [root.question_id, child.question_id],
     has_more: false,
   });
@@ -152,6 +154,20 @@ test('POST /ask/user_history/thread/rename renames a thread', async () => {
 
   const { data } = await post(api, '/ask/user_history/list', { user_id: 'u1' });
   assert.equal(data.threads.map(t => t.title), ['New']);
+});
+
+test('POST /ask/user_history/thread/favorite stars a thread', async () => {
+  const api = buildApi({ detemporize: true });
+  const { data: root } = await post(api, '/ask/questions', { question: 'Root' });
+
+  const { data } = await post(api, '/v1/ask/user_history/thread/favorite', { thread_id: root.question_id, user_id: 'u1' });
+  assert.is(data.thread_id, root.question_id);
+  assert.is(data.question_id, root.question_id);
+  assert.is(data.favorite, true);
+  assert.type(data.favorited_at, 'string');
+
+  const { data: list } = await post(api, '/ask/user_history/list', { user_id: 'u1', favorite: true });
+  assert.equal(list.threads.map(t => t.question_id), [root.question_id]);
 });
 
 test('POST /ask/user_history/delete removes the listed threads', async () => {

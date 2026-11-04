@@ -14,8 +14,12 @@ export class UserHistoryV0 {
   }
 
   // POST /ask/user_history/list
-  threads({ rows = 100, start = 0, before } = {}) {
+  threads({ rows = 100, start = 0, before, favorite } = {}) {
     let threads = [...this._history._threads.values()].sort(byUpdatedAtDesc);
+    // Omitted lists all threads; true/false keeps only starred/unstarred ones
+    if (favorite !== undefined && favorite !== null) {
+      threads = threads.filter(thread => thread.favorite === !!favorite);
+    }
     if (before !== undefined) {
       threads = threads.filter(({ updated_at }) => updated_at < before);
     }
@@ -53,6 +57,19 @@ export class UserHistoryV0 {
     const thread = this._getThreadByQuestion(thread_id);
     thread.title = title;
     return { question_id: thread.thread_id, title };
+  }
+
+  // POST /ask/user_history/thread/favorite
+  // Sets the star to the given state rather than toggling it, so it is
+  // idempotent
+  favorite({ thread_id, favorite = true } = {}) {
+    const thread = this._history.favoriteThread(thread_id, { favorite });
+    return {
+      thread_id: thread.thread_id,
+      question_id: thread.thread_id,
+      favorite: thread.favorite,
+      favorited_at: thread.favorited_at,
+    };
   }
 
   // POST /ask/user_history/delete
@@ -120,7 +137,7 @@ function byUpdatedAtDesc(a, b) {
 }
 
 // A thread is keyed by its root question, so id and question_id coincide
-function mapToThreadEntry({ thread_id, title, updated_at, subscribed, has_new }) {
+function mapToThreadEntry({ thread_id, title, updated_at, subscribed, has_new, favorite, favorited_at }) {
   return {
     id: thread_id,
     time: updated_at,
@@ -128,5 +145,7 @@ function mapToThreadEntry({ thread_id, title, updated_at, subscribed, has_new })
     title,
     subscribed,
     has_new,
+    favorite,
+    favorited_at,
   };
 }

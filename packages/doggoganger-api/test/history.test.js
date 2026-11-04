@@ -27,7 +27,7 @@ test('threads() entries omit questions_ids', () => {
   ask.questions({ question: 'What is Miso?' }, { seed: SEED });
 
   const [entry] = ask.userHistory.threads().threads;
-  assert.equal(Object.keys(entry).sort(), ['thread_id', 'title', 'updated_at', 'subscribed', 'has_new'].sort());
+  assert.equal(Object.keys(entry).sort(), ['thread_id', 'title', 'updated_at', 'subscribed', 'has_new', 'favorite', 'favorited_at'].sort());
   assert.is(entry.questions_ids, undefined);
 });
 
@@ -602,3 +602,50 @@ test('touchThread throws 404 for unknown thread_id', () => {
 });
 
 test.run();
+
+test('a new thread starts unstarred', () => {
+  const ask = makeAsk();
+  ask.questions({ question: 'What is Miso?' }, { seed: SEED });
+
+  const [entry] = ask.userHistory.threads().threads;
+  assert.is(entry.favorite, false);
+  assert.is(entry.favorited_at, null);
+});
+
+test('favoriteThread stars and unstars a thread, idempotently', () => {
+  const ask = makeAsk();
+  const { question_id } = ask.questions({ question: 'What is Miso?' }, { seed: SEED });
+
+  const starred = ask.userHistory.favoriteThread(question_id);
+  assert.is(starred.favorite, true);
+  assert.type(starred.favorited_at, 'string');
+
+  // Starring again keeps the original time
+  assert.is(ask.userHistory.favoriteThread(question_id, { favorite: true }).favorited_at, starred.favorited_at);
+
+  const unstarred = ask.userHistory.favoriteThread(question_id, { favorite: false });
+  assert.is(unstarred.favorite, false);
+  assert.is(unstarred.favorited_at, null);
+  assert.is(ask.userHistory.favoriteThread(question_id, { favorite: false }).favorite, false);
+});
+
+test('favoriteThread throws 404 for an unknown thread', () => {
+  const ask = makeAsk();
+  try {
+    ask.userHistory.favoriteThread('nope');
+    assert.unreachable();
+  } catch (e) {
+    assert.is(e.status, 404);
+  }
+});
+
+test('generateThreads stars some threads, with favorited_at only on those', () => {
+  const ask = makeAsk();
+  ask.userHistory.generateThreads({ rows: 12 }, { seed: SEED });
+  const { threads } = ask.userHistory.threads();
+  assert.ok(threads.some(({ favorite }) => favorite));
+  assert.ok(threads.some(({ favorite }) => !favorite));
+  for (const { favorite, favorited_at } of threads) {
+    assert.is(favorite ? typeof favorited_at : favorited_at, favorite ? 'string' : null);
+  }
+});
