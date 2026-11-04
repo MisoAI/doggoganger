@@ -35,7 +35,7 @@
     "@miso.ai/doggoganger-api": "file:packages/doggoganger-api",
     "@miso.ai/lorem": "file:packages/lorem",
     "koa": "^2.14.1",
-    "koa-body": "^6.0.1",
+    "koa-body": "^8.0.1",
     "koa-static": "^5.0.0",
     "yargs": "^17.5.1"
   },
